@@ -1,0 +1,13 @@
+[package]
+name = "papeli"
+version = "0.1.0"
+edition = "2024"
+authors = ["Lumen Pink <lumen@lumen.pink>"]
+description = "Filtro Milter Postfix em Rust para envelopar e-mails corporativos em papel de carta MJML responsivo com assinatura inteligente"
+readme = "README.md"
+repository = "https://codeberg.org/lumenpink/papeli"
+license = "GPL-3.0-or-later"
+keywords = ["milter", "postfix", "email", "mjml", "stationery"]
+categories = ["email", "network-programming"]
+
+[dependencies]
