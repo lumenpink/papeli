@@ -1,0 +1,21 @@
+[server]
+listen = "unix:/run/papeli/papeli.sock"
+# listen = "inet:127.0.0.1:8899"
+templates_dir = "/etc/papeli/templates"
+
+[default]
+company_name = "Minha Empresa"
+logo_url = "https://empresa.com/logo.png"
+template_html = "default.mjml"
+template_txt = "default.txt.j2"
+disclaimer = "Esta mensagem contém informações confidenciais."
+
+[domains."empresa.com"]
+company_name = "Minha Empresa S.A."
+logo_url = "https://empresa.com/assets/logo.png"
+disclaimer = "Mensagem protegida pela política de confidencialidade da Minha Empresa S.A."
+
+[senders."diretoria@empresa.com"]
+sender_name = "Diretoria Executiva"
+sender_role = "CEO"
+sender_phone = "+55 11 99999-9999"

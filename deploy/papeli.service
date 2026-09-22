@@ -1,0 +1,26 @@
+[Unit]
+Description=Papéli - Filtro Milter Postfix de Papel de Carta em Rust
+After=network.target local-fs.target
+Before=postfix.service
+
+[Service]
+Type=simple
+User=postfix
+Group=postfix
+ExecStart=/usr/local/bin/papeli --config /etc/papeli/papeli.toml
+Restart=always
+RestartSec=3s
+
+# Hardening e isolamento
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/run/papeli
+ReadOnlyPaths=/etc/papeli
+PrivateTmp=true
+NoNewPrivileges=true
+
+RuntimeDirectory=papeli
+RuntimeDirectoryMode=0770
+
+[Install]
+WantedBy=multi-user.target
