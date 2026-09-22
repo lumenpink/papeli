@@ -112,7 +112,13 @@ pub fn sanitize_html(raw_html: &str) -> String {
 
     let cleaned = builder.clean(&content_to_clean).to_string();
 
-    // 3. Remover nós de rodapé móvel no HTML
+    // 3. Remover classes MSO e WordSection legadas do Outlook
+    let mut cleaned = cleaned;
+    for mso_class in &["WordSection1", "WordSection2", "MsoNormal", "EmailStyle17", "MsoChpDefault"] {
+        cleaned = cleaned.replace(mso_class, "");
+    }
+
+    // 4. Remover nós de rodapé móvel no HTML
     remove_device_footers_html(&cleaned)
 }
 
