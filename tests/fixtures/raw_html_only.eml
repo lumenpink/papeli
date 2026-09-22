@@ -1,0 +1,22 @@
+From: Notificações Internas <notificacoes@acme.com>
+To: colaborador@acme.com
+Subject: Seu holerite de Setembro/2026 está disponível
+Date: Tue, 22 Sep 2026 07:15:00 -0300
+Message-ID: <rh-holerite-20260922@acme.com>
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Holerite Disponível</title>
+</head>
+<body style="font-family: sans-serif; color: #333;">
+  <h2>Olá Colaborador,</h2>
+  <p>O demonstrativo de pagamento referente ao mês de <strong>Setembro/2026</strong> já está disponível para consulta no portal de RH.</p>
+  <p><a href="https://rh.acme.com/holerite" style="color: #0066cc;">Clique aqui para acessar o Portal do Colaborador</a>.</p>
+  <hr style="border: 0; border-top: 1px solid #ddd;">
+  <p style="font-size: 11px; color: #888;">Recursos Humanos - ACME Corporation</p>
+</body>
+</html>

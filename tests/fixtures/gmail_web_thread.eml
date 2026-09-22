@@ -1,0 +1,54 @@
+MIME-Version: 1.0
+Date: Tue, 22 Sep 2026 10:20:15 -0300
+References: <CADk_12345@mail.gmail.com> <CADk_67890@mail.gmail.com>
+In-Reply-To: <CADk_67890@mail.gmail.com>
+Message-ID: <CADk_abcdef@mail.gmail.com>
+Subject: Re: Atualização do Projeto Papéli
+From: Ana Paula <anapaula@acme.com>
+To: Carlos Silva <carlos@acme.com>
+Content-Type: multipart/alternative; boundary="00000000000098765405e1234567"
+
+--00000000000098765405e1234567
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Carlos, perfeito!
+
+Já revisei os pontos de segurança e a implementação em Rust parece
+excelente. Podemos agendar a homologação para amanhã às 15h?
+
+Abraços,
+Ana Paula
+
+Em seg., 21 de set. de 2026 às 16:45, Carlos Silva <carlos@acme.com>
+escreveu:
+
+> Olá Ana,
+>
+> Segue em anexo a especificação técnica para sua avaliação.
+> Fico no aguardo do feedback para iniciarmos os testes.
+>
+> Atenciosamente,
+> Carlos Silva
+>
+
+--00000000000098765405e1234567
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr">Carlos, perfeito!<div><br></div><div>J=C3=A1 revisei os po=
+ntos de seguran=C3=A7a e a implementa=C3=A7=C3=A3o em Rust parece excelente=
+. Podemos agendar a homologa=C3=A7=C3=A3o para amanh=C3=A3 =C3=A0s 15h?</di=
+v><div><br></div><div>Abra=C3=A7os,</div><div class=3D"gmail_signature"><di=
+v dir=3D"ltr"><b>Ana Paula</b><br>Arquiteta de Software</div></div></div><br=
+><div class=3D"gmail_quote"><div dir=3D"ltr" class=3D"gmail_attr">Em seg.,=
+ 21 de set. de 2026 =C3=A0s 16:45, Carlos Silva &lt;<a href=3D"mailto:carl=
+os@acme.com">carlos@acme.com</a>&gt; escreveu:<br></div><blockquote class=
+=3D"gmail_quote" style=3D"margin:0px 0px 0px 0.8ex;border-left:1px solid rg=
+b(204,204,204);padding-left:1ex"><div dir=3D"ltr">Ol=C3=A1 Ana,<div><br></d=
+iv><div>Segue em anexo a especifica=C3=A7=C3=A3o t=C3=A9cnica para sua aval=
+ia=C3=A7=C3=A3o.</div><div>Fico no aguardo do feedback para iniciarmos os t=
+estes.</div><div><br></div><div>Atenciosamente,<br>Carlos Silva</div></div>
+</blockquote></div>
+
+--00000000000098765405e1234567--

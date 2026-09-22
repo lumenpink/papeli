@@ -1,0 +1,30 @@
+From: Roberto Mendes <roberto@acme.com>
+Content-Type: multipart/alternative;
+	boundary=Apple-Mail-9B45C029-7988-4F23-9D67-27C86A5128DA
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0 (1.0)
+Subject: Contrato assinado
+Message-Id: <E3D90A1B-55F4-4D2A-8512-E529DF8A0331@acme.com>
+Date: Tue, 22 Sep 2026 11:05:43 -0300
+To: Diretoria <diretoria@acme.com>
+X-Mailer: iPhone Mail (21A329)
+
+--Apple-Mail-9B45C029-7988-4F23-9D67-27C86A5128DA
+Content-Type: text/plain;
+	charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Aprovado por aqui. Podem seguir com a assinatura eletr=C3=B4nica.
+
+Enviado do meu iPhone
+
+--Apple-Mail-9B45C029-7988-4F23-9D67-27C86A5128DA
+Content-Type: text/html;
+	charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<html><head><meta http-equiv=3D"content-type" content=3D"text/html; charset=
+=3Dutf-8"></head><body dir=3D"auto"><div dir=3D"ltr">Aprovado por aqui. Pod=
+em seguir com a assinatura eletr=C3=B4nica.<div><br></div><div><div dir=3D"=
+ltr">Enviado do meu iPhone</div></div></div></body></html>
+--Apple-Mail-9B45C029-7988-4F23-9D67-27C86A5128DA--

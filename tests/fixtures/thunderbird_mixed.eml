@@ -1,0 +1,65 @@
+From: Juliana Costa <juliana@acme.com>
+To: cliente@empresaexterna.com.br
+Subject: Relatório Financeiro Q3 - ACME Corp
+Date: Tue, 22 Sep 2026 08:30:00 -0300
+Message-ID: <a1b2c3d4-e5f6-7890-abcd-ef1234567890@acme.com>
+User-Agent: Mozilla Thunderbird
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------rOcx1M4jS7lQ2aZ5hW9k8v7b"
+
+This is a multi-part message in MIME format.
+--------------rOcx1M4jS7lQ2aZ5hW9k8v7b
+Content-Type: multipart/alternative;
+ boundary="------------pLn3K7vY1mX9qW4zR8j2t6cD"
+
+--------------pLn3K7vY1mX9qW4zR8j2t6cD
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+
+Bom dia,
+
+Segue em anexo o relatório financeiro consolidado do terceiro trimestre (Q3).
+Qualquer dúvida estamos à disposição.
+
+Atenciosamente,
+Juliana Costa
+Controladoria
+
+--------------pLn3K7vY1mX9qW4zR8j2t6cD
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+  <body>
+    <p>Bom dia,</p>
+    <p>Segue em anexo o relatório financeiro consolidado do terceiro trimestre (Q3).<br>
+    Qualquer dúvida estamos à disposição.</p>
+    <p>Atenciosamente,<br>
+    <b>Juliana Costa</b><br>
+    Controladoria</p>
+  </body>
+</html>
+
+--------------pLn3K7vY1mX9qW4zR8j2t6cD--
+
+--------------rOcx1M4jS7lQ2aZ5hW9k8v7b
+Content-Type: application/pdf; name="relatorio_q3_consolidado.pdf"
+Content-Disposition: attachment; filename="relatorio_q3_consolidado.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQKJcTl8uXrp/Og0MTGCjQgMCBvYmoKPDwgL0xlbmd0aCA0OSAvRmlsdGVyIC9GbGF0
+ZURlY29kZSA+PgpzdHJlYW0KeJwrVAgwsDBQMDQyVTA1NQEShkaGeiYKBgYGFgYKBsYGOkZGJqbm
+RgZAhsLSEpBGBgZ6CgAA7jEFdgplbmRzdHJlYW0KZW5kb2JqCjEgMCBvYmoKPDwgL1R5cGUgL1Bh
+Z2VzIC9LaWRzIFsgMiAwIFIgXSAvQ291bnQgMSA+PgrlbmRvYmoKMyAwIG9iago8PCAvVHlwZSAv
+Q2F0YWxvZyAvUGFnZXMgMSAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1Bh
+cmVudCAxIDAgUiAvTWVkaWFCb3ggWyAwIDAgNjEyIDc5MiBdIC9Db250ZW50cyA0IDAgUiA+Pgpl
+bmRvYmoKeHJlZgowIDUKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMTcwIDAwMDAwIG4gCjAw
+MDAwMDAyOTUgMDAwMDAgbiAKMDAwMDAwMDIzMiAwMDAwMCBuIAowMDAwMDAwMDE5IDAwMDAwIG4g
+CnRyYWlsZXIKPDwgL1NpemUgNSAvUm9vdCAzIDAgUiA+PgpzdGFydHhyZWYKMzgyCiUlRU9GCg==
+
+--------------rOcx1M4jS7lQ2aZ5hW9k8v7b--

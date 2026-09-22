@@ -1,0 +1,70 @@
+From: "Secretaria Geral" <secretaria@acme.com>
+To: "Todos Colaboradores" <todos@acme.com>
+Subject: Comunicado: Reforma da Recepção Principal
+Date: Tue, 22 Sep 2026 15:45:00 -0300
+Message-ID: <legacy-stationery-001@acme.com>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="----=_NextPart_Legacy_Stationery_123"
+
+------=_NextPart_Legacy_Stationery_123
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+COMUNICADO INTERNO
+
+A recep=E7=E3o principal do edif=EDcio sede passar=E1 por obras a partir de=
+ segunda-feira.
+O acesso ser=E1 realizado provisoriamente pela portaria lateral.
+
+Secretaria Geral
+ACME Corp
+
+------=_NextPart_Legacy_Stationery_123
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>Comunicado</TITLE>
+<META content=3D"text/html; charset=3Diso-8859-1" http-equiv=3DContent-Type=
+>
+<STYLE>
+BODY {
+	BACKGROUND-COLOR: #e6f2ff;
+	BACKGROUND-IMAGE: url('http://legado.acme.com/stationery/marble_texture.gi=
+f');
+	FONT-FAMILY: 'Comic Sans MS', cursive, sans-serif;
+	COLOR: #003366;
+}
+.stationery-border {
+	BORDER: 4px ridge #99ccff;
+	PADDING: 20px;
+	BACKGROUND-COLOR: #ffffff;
+}
+</STYLE>
+</HEAD>
+<BODY background=3D"http://legado.acme.com/stationery/marble_texture.gif" b=
+gcolor=3D"#e6f2ff">
+<DIV align=3Dcenter>
+<TABLE class=3Dstationery-border width=3D"550" cellSpacing=3D0 cellPadding=
+=3D10>
+  <TBODY>
+  <TR>
+    <TD>
+      <H2 align=3Dcenter><FONT color=3D#003366>COMUNICADO INTERNO</FONT></H=
+2>
+      <P>A recep=E7=E3o principal do edif=EDcio sede passar=E1 por obras a =
+partir de segunda-feira.</P>
+      <P>O acesso ser=E1 realizado provisoriamente pela portaria lateral.</P=
+>
+      <BR>
+      <P align=3Dright><FONT size=3D2><B>Secretaria Geral</B><BR>ACME Corp<=
+/FONT></P>
+    </TD>
+  </TR>
+  </TBODY>
+</TABLE>
+</DIV>
+</BODY>
+</HTML>
+
+------=_NextPart_Legacy_Stationery_123--

@@ -1,0 +1,19 @@
+From: DevOps <devops@acme.com>
+To: sysadmin@acme.com
+Subject: [ALERTA] Manutenção programada do gateway
+Date: Tue, 22 Sep 2026 03:00:10 -0300
+Message-ID: <raw-text-alerta-001@acme.com>
+User-Agent: Mutt/2.2.12 (2023-09-09)
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+Atenção equipe,
+
+O gateway de pagamento passará por atualização de firmware às 04:00 BRT.
+A janela prevista de indisponibilidade é de 10 minutos.
+
+Favor monitorar a fila de transações no Grafana.
+
+-- 
+Operações de Infraestrutura
+ACME Corp

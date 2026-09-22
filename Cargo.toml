@@ -11,3 +11,6 @@ keywords = ["milter", "postfix", "email", "mjml", "stationery"]
 categories = ["email", "network-programming"]
 
 [dependencies]
+
+[dev-dependencies]
+mail-parser = "0.11"
