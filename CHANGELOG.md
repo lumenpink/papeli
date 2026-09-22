@@ -2,7 +2,8 @@
 
 ## [Unreleased]
 
-- Routine maintenance, documentation updates, and operational improvements.
+### Features
+  - (mime) parse and reconstruct MIME tree preserving attachments (closes #6)
 
 ## Previous Releases
 
