@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentação — Papéli</title>
+  <meta name="description" content="Documentação completa do Papéli: Postfix, configuração TOML, MIME, sanitização, templates MJML e assinaturas.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+  <div class="lace-top"></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" style="text-decoration:none;">
+        <div class="logo-title">Papéli</div>
+      </a>
+      <div class="logo-subtitle">Documentação Técnica</div>
+      <div class="header-stamps">
+        <span class="stamp rust">🦀 Pure Rust</span>
+        <span class="stamp milter">📬 Postfix Milter</span>
+        <span class="stamp free">💚 MIT License</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="lace-bottom" style="background-color: #fde8ef;"></div>
+
+  <nav class="site-nav" aria-label="Navegação principal">
+    <div class="nav-inner">
+      <a href="index.html">🌸 Início</a>
+      <a href="docs.html" class="active">📖 Documentação</a>
+      <a href="downloads.html">📦 Instalação</a>
+      <a href="https://codeberg.org/lumenpink/papeli" target="_blank" rel="noopener">🦡 Codeberg</a>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- Índice de Navegação -->
+    <nav class="letter-paper" style="margin: 1.5rem 0; padding: 1.25rem 1.75rem;" aria-label="Índice de documentação">
+      <h2 class="mt-0" style="font-family:'Sacramento',cursive; font-size:2rem; border:none; color:var(--rosa-escuro);">
+        Índice
+      </h2>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:0.35rem 2rem;">
+        <a href="#postfix" style="color:var(--rosa-vintage); text-decoration:none; font-weight:600;">📬 Integração com Postfix</a>
+        <a href="#config" style="color:var(--rosa-vintage); text-decoration:none; font-weight:600;">⚙️ Configuração TOML</a>
+        <a href="#templates" style="color:var(--rosa-vintage); text-decoration:none; font-weight:600;">📐 Templates MJML</a>
+        <a href="#signatures" style="color:var(--rosa-vintage); text-decoration:none; font-weight:600;">✍️ Assinaturas Duplas</a>
+        <a href="#mime" style="color:var(--rosa-vintage); text-decoration:none; font-weight:600;">📎 Processamento MIME</a>
+        <a href="#sanitization" style="color:var(--rosa-vintage); text-decoration:none; font-weight:600;">✂️ Sanitização HTML</a>
+        <a href="#milter" style="color:var(--rosa-vintage); text-decoration:none; font-weight:600;">🔌 Protocolo Milter</a>
+        <a href="#testing" style="color:var(--rosa-vintage); text-decoration:none; font-weight:600;">🧪 Testes</a>
+      </div>
+    </nav>
+
+    <!-- ─── Seção: Postfix ─── -->
+    <section id="postfix" class="section-wrapper">
+      <div class="letter-paper binder">
+        <div style="padding-left:3.5rem;">
+          <h2 class="mt-0">Integração com o Postfix</h2>
+
+          <p>
+            O Papéli deve atuar <strong>exclusivamente</strong> nos serviços de envio de usuários autenticados —
+            as portas <code>submission</code> (587) e <code>submissions</code> (465). Nunca na porta 25,
+            para não alterar emails recebidos de terceiros.
+          </p>
+
+          <h3>Fluxo recomendado</h3>
+          <div style="overflow-x:auto; margin:1rem 0;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Porta</th>
+                  <th>Serviço</th>
+                  <th>Milters (em ordem)</th>
+                  <th>Responsabilidade</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>25</code></td>
+                  <td>smtp (entrada)</td>
+                  <td><em>sem papeli</em></td>
+                  <td>Emails externos recebidos</td>
+                </tr>
+                <tr>
+                  <td><code>587</code></td>
+                  <td>submission</td>
+                  <td><code>papeli.sock</code> → <code>opendkim</code></td>
+                  <td>Envio autenticado STARTTLS</td>
+                </tr>
+                <tr>
+                  <td><code>465</code></td>
+                  <td>submissions (SMTPS)</td>
+                  <td><code>papeli.sock</code> → <code>opendkim</code></td>
+                  <td>Envio autenticado SSL/TLS</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Configuração do <code>master.cf</code></h3>
+          <pre><code># Porta 587 — STARTTLS Submission
+submission inet n       -       y       -       -       smtpd
+  -o syslog_name=postfix/submission
+  -o smtpd_tls_security_level=encrypt
+  -o smtpd_sasl_auth_enable=yes
+  -o smtpd_client_restrictions=permit_sasl_authenticated,reject
+  -o smtpd_milters=unix:/run/papeli/papeli.sock,inet:localhost:8891
+  -o milter_default_action=accept
+
+# Porta 465 — SMTPS Implícito
+submissions inet n       -       y       -       -       smtpd
+  -o syslog_name=postfix/submissions
+  -o smtpd_tls_wrappermode=yes
+  -o smtpd_sasl_auth_enable=yes
+  -o smtpd_client_restrictions=permit_sasl_authenticated,reject
+  -o smtpd_milters=unix:/run/papeli/papeli.sock,inet:localhost:8891
+  -o milter_default_action=accept</code></pre>
+
+          <div class="callout warning">
+            <span class="callout-icon">⚠️</span>
+            <div>
+              Mantenha a porta <code>25</code> (<code>smtp inet</code>) <strong>sem</strong>
+              o <code>unix:/run/papeli/papeli.sock</code>, garantindo que emails externos
+              recebidos não sejam alterados.
+            </div>
+          </div>
+
+          <h3>Permissões do Socket UNIX</h3>
+          <pre><code>sudo mkdir -p /run/papeli /etc/papeli/templates
+sudo chown -R postfix:postfix /run/papeli /etc/papeli
+sudo chmod 770 /run/papeli</code></pre>
+
+          <div class="callout info">
+            <span class="callout-icon">ℹ️</span>
+            <div>
+              Se o Postfix estiver com chroot habilitado (padrão Debian/Ubuntu), aponte o socket
+              para dentro do chroot: <code>/var/spool/postfix/papeli/papeli.sock</code>, ou desative
+              o chroot mudando a coluna <code>chroot</code> de <code>y</code> para <code>n</code> no <code>master.cf</code>.
+            </div>
+          </div>
+
+          <h3>Instalação do serviço systemd</h3>
+          <pre><code>sudo cp target/release/papeli /usr/local/bin/papeli
+sudo cp deploy/papeli.example.toml /etc/papeli/papeli.toml
+sudo cp deploy/papeli.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now papeli
+sudo postfix reload</code></pre>
+
+          <h3>Validando com <code>swaks</code></h3>
+          <pre><code>swaks --to destinatario@externo.com \
+      --from carlos@suaempresa.com \
+      --server localhost \
+      --port 587 \
+      --auth LOGIN \
+      --auth-user carlos@suaempresa.com \
+      --auth-password 'suasenha' \
+      --tls \
+      --body "Olá, este é um teste do Papéli com Postfix!"</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <div class="floral-divider">🌸 🌷 💐 🌷 🌸</div>
+
+    <!-- ─── Seção: Config ─── -->
+    <section id="config" class="section-wrapper">
+      <div class="letter-paper">
+        <h2 class="mt-0">Configuração TOML Hierárquica</h2>
+
+        <p>
+          O Papéli resolve variáveis em 3 camadas de precedência descendente.
+          Se o remetente for de um domínio não gerenciado (ex: <code>@gmail.com</code>),
+          o daemon ignora a mensagem sem alterá-la.
+        </p>
+
+        <div style="background: var(--rosa-suave); border-radius: 12px; padding: 1.25rem; margin:1rem 0; font-family: var(--fonte-codigo); font-size:0.84rem; line-height:1.8;">
+          <div style="color:var(--rosa-escuro); font-weight:bold;">[default]</div>
+          <div style="margin-left:1rem; color:#546e7a;">Organização Geral, logo padrão, template padrão</div>
+          <div style="margin-left:2rem; color:var(--rosa-chiclete); font-size:1.2rem;">↓</div>
+          <div style="color:var(--rosa-vintage); font-weight:bold;">[domains."acme.com"]</div>
+          <div style="margin-left:1rem; color:#546e7a;">Sobrescreve empresa, logo, disclaimer</div>
+          <div style="margin-left:2rem; color:var(--rosa-chiclete); font-size:1.2rem;">↓</div>
+          <div style="color:var(--rosa-framboesa); font-weight:bold;">[senders."carlos@acme.com"]</div>
+          <div style="margin-left:1rem; color:#546e7a;">Sobrescreve nome, cargo, telefone</div>
+        </div>
+
+        <h3>Arquivo <code>papeli.toml</code> completo</h3>
+        <pre><code>[server]
+# Socket de escuta: UNIX socket ou TCP inet
+listen = "unix:/run/papeli/papeli.sock"
+# listen = "inet:127.0.0.1:8899"
+templates_dir = "/etc/papeli/templates"
+
+[default]
+company_name  = "Organização Geral"
+logo_url      = "https://empresa.com/assets/logo-padrao.png"
+template_html = "default.mjml"
+template_txt  = "default.txt.j2"
+disclaimer    = "Esta mensagem contém informações confidenciais."
+
+[domains."acme.com"]
+company_name = "ACME Corporation"
+logo_url     = "https://acme.com/logo.png"
+disclaimer   = "Mensagem protegida pela política de confidencialidade da ACME."
+
+[senders."diretoria@acme.com"]
+sender_name  = "Carlos Silva"
+sender_role  = "Diretor Executivo"
+sender_phone = "+55 11 99999-9999"
+
+[senders."suporte@acme.com"]
+sender_name  = "Suporte ao Cliente"
+sender_role  = "Central de Atendimento 24/7"
+sender_phone = "0800 123 4567"</code></pre>
+
+        <h3>Referência das variáveis de template</h3>
+        <table>
+          <thead>
+            <tr><th>Variável</th><th>Fonte</th><th>Descrição</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>company_name</code></td><td>config</td><td>Nome da empresa/organização</td></tr>
+            <tr><td><code>logo_url</code></td><td>config</td><td>URL absoluta do logotipo</td></tr>
+            <tr><td><code>template_html</code></td><td>config</td><td>Arquivo MJML do papel de carta</td></tr>
+            <tr><td><code>template_txt</code></td><td>config</td><td>Template texto puro Jinja2</td></tr>
+            <tr><td><code>disclaimer</code></td><td>config</td><td>Aviso legal de rodapé</td></tr>
+            <tr><td><code>sender_name</code></td><td>config / header</td><td>Nome completo do remetente</td></tr>
+            <tr><td><code>sender_role</code></td><td>config</td><td>Cargo/função</td></tr>
+            <tr><td><code>sender_phone</code></td><td>config</td><td>Telefone de contato</td></tr>
+            <tr><td><code>body_html</code></td><td>mensagem</td><td>Corpo HTML sanitizado</td></tr>
+            <tr><td><code>body_txt</code></td><td>mensagem</td><td>Corpo texto puro</td></tr>
+            <tr><td><code>from</code></td><td>header</td><td>Endereço de email do remetente</td></tr>
+            <tr><td><code>date</code></td><td>header</td><td>Data/hora da mensagem</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout pink">
+          <span class="callout-icon">🌸</span>
+          <div>
+            <strong>Hot-Reload:</strong> Alterações no <code>papeli.toml</code> entram em vigor instantaneamente
+            para o próximo email processado. A estrutura interna é protegida por <code>Arc&lt;RwLock&lt;Config&gt;&gt;</code>.
+            Sem necessidade de reiniciar o serviço systemd ou o Postfix.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="floral-divider">💌 ✉️ 📮 ✉️ 💌</div>
+
+    <!-- ─── Seção: Templates ─── -->
+    <section id="templates" class="section-wrapper">
+      <div class="letter-paper">
+        <h2 class="mt-0">Templates MJML</h2>
+
+        <p>
+          O Papéli compila templates <strong>MJML</strong> para HTML responsivo usando a biblioteca
+          <code>mrml</code> (Rust puro). As variáveis são interpoladas com <strong>MiniJinja</strong>
+          antes da compilação MJML.
+        </p>
+
+        <div class="callout info">
+          <span class="callout-icon">ℹ️</span>
+          <div>
+            Os templates ficam em <code>/etc/papeli/templates/</code>. O nome do arquivo é configurado
+            por domínio ou remetente no <code>papeli.toml</code>.
+          </div>
+        </div>
+
+        <h3>Template MJML mínimo (<code>default.mjml</code>)</h3>
+        <pre><code>&lt;mjml&gt;
+  &lt;mj-head&gt;
+    &lt;mj-attributes&gt;
+      &lt;mj-all font-family="Arial, sans-serif" font-size="14px" /&gt;
+    &lt;/mj-attributes&gt;
+  &lt;/mj-head&gt;
+
+  &lt;mj-body background-color="#f4f6f8"&gt;
+
+    &lt;!-- Cabeçalho com logotipo --&gt;
+    &lt;mj-section background-color="#ffffff" padding="20px 30px"&gt;
+      &lt;mj-column&gt;
+        &lt;mj-image src="{{ logo_url }}" width="180px" alt="{{ company_name }}" /&gt;
+      &lt;/mj-column&gt;
+    &lt;/mj-section&gt;
+
+    &lt;!-- Corpo da mensagem --&gt;
+    &lt;mj-section background-color="#ffffff" padding="10px 30px 20px"&gt;
+      &lt;mj-column&gt;
+        &lt;mj-text&gt;
+          {{ body_html }}
+        &lt;/mj-text&gt;
+      &lt;/mj-column&gt;
+    &lt;/mj-section&gt;
+
+    &lt;!-- Assinatura --&gt;
+    &lt;mj-section background-color="#fafafa" border-top="1px solid #e0e0e0"
+                padding="15px 30px"&gt;
+      &lt;mj-column&gt;
+        &lt;mj-text font-size="12px" color="#666666"&gt;
+          &lt;div class="papeli-sig-long" data-papeli="signature"
+               data-sender="{{ from }}"&gt;
+            &lt;strong&gt;{{ sender_name }}&lt;/strong&gt;&lt;br&gt;
+            {{ sender_role }} | {{ company_name }}&lt;br&gt;
+            Tel: {{ sender_phone }}&lt;br&gt;
+            &lt;small&gt;{{ disclaimer }}&lt;/small&gt;
+          &lt;/div&gt;
+        &lt;/mj-text&gt;
+      &lt;/mj-column&gt;
+    &lt;/mj-section&gt;
+
+  &lt;/mj-body&gt;
+&lt;/mjml&gt;</code></pre>
+
+        <div class="callout warning">
+          <span class="callout-icon">⚠️</span>
+          <div>
+            <strong>Atenção com strings literais Rust no template:</strong> Evite usar <code>r#"..."#</code>
+            em strings que contenham <code>#</code> (como cores CSS <code>#ffffff</code> ou
+            <code>background-color="#f4f6f8"</code>). Use <code>r##"..."##</code> nesses casos.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Seção: Assinaturas ─── -->
+    <section id="signatures" class="section-wrapper">
+      <div class="letter-paper">
+        <h2 class="mt-0">Sistema de Assinatura Dupla</h2>
+
+        <p>
+          O módulo <code>src/signatures.rs</code> implementa o mecanismo de <strong>dupla assinatura</strong>
+          que resolve o problema clássico de inchaço em threads longas.
+        </p>
+
+        <div class="tabs">
+          <div class="tab-buttons">
+            <button class="tab-btn active" data-tab="tab-html">HTML</button>
+            <button class="tab-btn" data-tab="tab-txt">Texto Puro</button>
+            <button class="tab-btn" data-tab="tab-algo">Algoritmo</button>
+          </div>
+
+          <div class="tab-panel active" id="tab-html">
+            <h3>Marcadores HTML</h3>
+            <p><strong>Assinatura Longa</strong> (mensagem ativa recente):</p>
+            <pre><code>&lt;div class="papeli-sig-long"
+     data-papeli="signature"
+     data-sender="carlos@acme.com"&gt;
+  &lt;strong&gt;Carlos Silva&lt;/strong&gt;&lt;br&gt;
+  Diretor de Tecnologia | ACME Corp&lt;br&gt;
+  Tel: +55 11 99999-9999 | www.acme.com&lt;br&gt;
+  &lt;small&gt;Aviso de confidencialidade: ...&lt;/small&gt;
+&lt;/div&gt;</code></pre>
+            <p><strong>Assinatura Curta</strong> (substituída no histórico citado):</p>
+            <pre><code>&lt;div class="papeli-sig-short" data-papeli="signature"&gt;
+  &lt;p style="color: #666; font-size: 11px;"&gt;— Carlos Silva (ACME Corp)&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+
+          <div class="tab-panel" id="tab-txt">
+            <h3>Delimitadores em Texto Puro</h3>
+            <p><strong>Assinatura Longa:</strong></p>
+            <pre><code>--
+&lt;!--papeli:sig:start:long--&gt;
+Carlos Silva
+Diretor de Tecnologia | ACME Corp
+Tel: +55 11 99999-9999
+[Aviso legal...]
+&lt;!--papeli:sig:end:long--&gt;</code></pre>
+            <p><strong>Assinatura Curta:</strong></p>
+            <pre><code>&lt;!--papeli:sig:start:short--&gt;
+— Carlos Silva (ACME Corp)
+&lt;!--papeli:sig:end:short--&gt;</code></pre>
+          </div>
+
+          <div class="tab-panel" id="tab-algo">
+            <h3>Algoritmo de Compactação</h3>
+            <ol>
+              <li>O filtro detecta a presença de citações (<code>&lt;blockquote&gt;</code>, <code>.gmail_quote</code>, etc.).</li>
+              <li>Varre o DOM localizando instâncias antigas de <code>.papeli-sig-long</code>.</li>
+              <li>Substitui cada bloco longo pela versão compacta equivalente (<code>.papeli-sig-short</code>).</li>
+              <li>Aplica a nova assinatura longa apenas no final da mensagem atual do remetente.</li>
+            </ol>
+            <div class="callout tip">
+              <span class="callout-icon">💚</span>
+              <div>
+                <strong>Resultado:</strong> Conversas limpas, economia de mais de <strong>70% dos bytes</strong>
+                em threads longas e leitura despoluída.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Seção: MIME ─── -->
+    <section id="mime" class="section-wrapper">
+      <div class="letter-paper">
+        <h2 class="mt-0">Processamento MIME</h2>
+
+        <p>
+          O módulo <code>src/mime.rs</code> é o coração do Papéli: analisa toda a árvore MIME
+          da mensagem e a reconstrói de forma cirúrgica, preservando 100% dos anexos.
+        </p>
+
+        <h3>Casos suportados</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo de Email</th>
+              <th>Estrutura MIME</th>
+              <th>Comportamento</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Texto puro</td>
+              <td><code>text/plain</code></td>
+              <td>Promovido para <code>multipart/alternative</code> com HTML gerado</td>
+            </tr>
+            <tr>
+              <td>HTML simples</td>
+              <td><code>text/html</code></td>
+              <td>Sanitizado e envelopado no template MJML</td>
+            </tr>
+            <tr>
+              <td>Alternativo</td>
+              <td><code>multipart/alternative</code></td>
+              <td>Ambas as partes processadas independentemente</td>
+            </tr>
+            <tr>
+              <td>Com anexos</td>
+              <td><code>multipart/mixed</code></td>
+              <td>Corpo processado; anexos copiados bit-a-bit (SHA-256 verificado)</td>
+            </tr>
+            <tr>
+              <td>Imagens inline</td>
+              <td><code>multipart/related</code> + CID</td>
+              <td>CIDs preservados; imagens permanecem como partes da mensagem</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout tip">
+          <span class="callout-icon">🌟</span>
+          <div>
+            Anexos são copiados <strong>bit-a-bit</strong> com verificação SHA-256. Nunca há decodificação
+            e re-codificação desnecessária — preservando integridade mesmo para arquivos binários complexos.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Seção: Sanitização ─── -->
+    <section id="sanitization" class="section-wrapper">
+      <div class="letter-paper">
+        <h2 class="mt-0">Sanitização HTML</h2>
+
+        <p>
+          O módulo <code>src/sanitizer.rs</code> usa <strong>Ammonia</strong> e <strong>Scraper</strong>
+          para limpar semanticamente o HTML sem destruir o conteúdo significativo.
+        </p>
+
+        <h3>O que é removido</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin:1rem 0;">
+          <div class="callout" style="background:#fce4ec; border-left:4px solid #f48fb1; margin:0;">
+            <span class="callout-icon">🗑️</span>
+            <div>
+              <strong>Lixo do Outlook/Word</strong><br>
+              <code>class="WordSection1"</code><br>
+              <code>class="MsoNormal"</code><br>
+              Condicionais VML (<code>&lt;!--[if mso]--&gt;</code>)<br>
+              Estilos <code>mso-*</code> inline
+            </div>
+          </div>
+          <div class="callout" style="background:#fce4ec; border-left:4px solid #f48fb1; margin:0;">
+            <span class="callout-icon">📱</span>
+            <div>
+              <strong>Rodapés de celular</strong><br>
+              "Enviado do meu iPhone"<br>
+              "Sent from my Android"<br>
+              "Get Outlook for iOS"<br>
+              "Enviado via Gmail"
+            </div>
+          </div>
+        </div>
+
+        <h3>O que é preservado</h3>
+        <ul>
+          <li>Formatação semântica: negrito, itálico, listas, tabelas, links</li>
+          <li>Imagens inline (CID e URLs absolutas)</li>
+          <li>Estrutura de cabeçalhos (<code>h1</code>–<code>h6</code>)</li>
+          <li>Blocos de código e citações (<code>blockquote</code>)</li>
+          <li>Todo o conteúdo textual do email</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ─── Seção: Milter ─── -->
+    <section id="milter" class="section-wrapper">
+      <div class="letter-paper">
+        <h2 class="mt-0">Protocolo Milter</h2>
+
+        <p>
+          O <code>src/milter.rs</code> implementa um servidor Milter em Rust puro,
+          compatível com o protocolo Sendmail Milter v6.
+        </p>
+
+        <h3>Modos de socket</h3>
+        <div class="tabs">
+          <div class="tab-buttons">
+            <button class="tab-btn active" data-tab="tab-unix">UNIX Socket (recomendado)</button>
+            <button class="tab-btn" data-tab="tab-tcp">TCP</button>
+          </div>
+          <div class="tab-panel active" id="tab-unix">
+            <pre><code># papeli.toml
+[server]
+listen = "unix:/run/papeli/papeli.sock"
+
+# master.cf do Postfix
+-o smtpd_milters=unix:/run/papeli/papeli.sock,inet:localhost:8891</code></pre>
+            <p>Socket UNIX é recomendado: comunicação local mais rápida, sem overhead de rede, sem exposição de porta TCP.</p>
+          </div>
+          <div class="tab-panel" id="tab-tcp">
+            <pre><code># papeli.toml
+[server]
+listen = "inet:127.0.0.1:8899"
+
+# master.cf do Postfix
+-o smtpd_milters=inet:127.0.0.1:8899,inet:localhost:8891</code></pre>
+            <p>Modo TCP útil quando o Postfix está em container separado ou quando há necessidade de depuração remota.</p>
+          </div>
+        </div>
+
+        <h3>Bypass automático</h3>
+        <p>
+          Se o domínio do remetente não estiver configurado no <code>papeli.toml</code>
+          (ex: <code>@gmail.com</code>, <code>@hotmail.com</code>), o daemon retorna
+          <code>SMFIS_ACCEPT</code> imediatamente, passando a mensagem inalterada para o próximo milter.
+        </p>
+      </div>
+    </section>
+
+    <!-- ─── Seção: Testes ─── -->
+    <section id="testing" class="section-wrapper">
+      <div class="letter-paper">
+        <h2 class="mt-0">Suite de Testes</h2>
+
+        <p>
+          O Papéli possui mais de <strong>30 testes automatizados</strong> cobrindo todos os
+          cenários de processamento MIME, sanitização e assinatura.
+        </p>
+
+        <h3>Executar os testes</h3>
+        <pre><code># Rodar todos os testes
+cargo test
+
+# Com output detalhado
+cargo test -- --nocapture
+
+# Filtrar por módulo
+cargo test mime
+cargo test sanitizer
+cargo test signatures</code></pre>
+
+        <h3>Cobertura de testes por módulo</h3>
+        <table>
+          <thead>
+            <tr><th>Módulo</th><th>Cenários testados</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>mime.rs</code></td>
+              <td>text/plain, text/html, multipart/alternative, multipart/mixed, multipart/related, CID inline, anexos binários (SHA-256), promoção de texto puro</td>
+            </tr>
+            <tr>
+              <td><code>sanitizer.rs</code></td>
+              <td>remoção de classes MSO/Word, condicionais VML, rodapés de iPhone/Android/Outlook, preservação de links e formatação semântica</td>
+            </tr>
+            <tr>
+              <td><code>signatures.rs</code></td>
+              <td>injeção de assinatura longa, colapso de assinaturas históricas, delimitadores ASCII em texto puro, múltiplas threads</td>
+            </tr>
+            <tr>
+              <td><code>templates.rs</code></td>
+              <td>compilação MJML, interpolação de variáveis MiniJinja, templates com todas as variáveis de config</td>
+            </tr>
+            <tr>
+              <td><code>config.rs</code></td>
+              <td>resolução hierárquica (sender → domain → default), hot-reload, domínios não gerenciados (bypass)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Fixtures de teste</h3>
+        <p>
+          Emails reais de diferentes clientes (Outlook 365, Apple Mail, Thunderbird, Gmail Web,
+          Android Gmail, iPhone Mail) estão disponíveis como fixtures em <code>tests/fixtures/</code>
+          para testes de regressão end-to-end.
+        </p>
+
+        <div class="callout tip">
+          <span class="callout-icon">💚</span>
+          <div>
+            Veja o arquivo <code>docs/FIXTURES.md</code> para a lista completa de fixtures disponíveis
+            e como adicionar novos cenários de teste.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="lace-top" style="background-color: #880e4f;"></div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-logo">Papéli</div>
+      <div class="footer-tagline">Carta com carinho, código com rigor 💌</div>
+      <nav class="footer-links" aria-label="Links do rodapé">
+        <a href="index.html">Início</a>
+        <a href="docs.html">Documentação</a>
+        <a href="downloads.html">Instalação</a>
+        <a href="https://codeberg.org/lumenpink/papeli" target="_blank" rel="noopener">Codeberg</a>
+        <a href="https://codeberg.org/lumenpink/papeli/issues" target="_blank" rel="noopener">Issues</a>
+        <a href="https://codeberg.org/lumenpink/papeli/raw/branch/main/LICENSE-MIT" target="_blank" rel="noopener">Licença MIT</a>
+      </nav>
+      <div class="footer-copy">
+        🌸 Feito com amor, Rust e muita resistência ao HTML feio do Outlook · MIT License<br>
+        lumenpink &amp; contribuidores · 2026
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const group = btn.closest('.tabs');
+        group.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        group.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        group.querySelector(`#${btn.dataset.tab}`).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

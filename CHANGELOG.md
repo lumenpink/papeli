@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Features
+  - (site) add documentation site, forgejo ci and cloudflare pages deploy
   - (milter) dual unix/tcp listener and smtp event loop (closes #11)
   - (config) hierarchical resolution and live hot-reload (closes #10)
   - (templates) native MJML via mrml and minijinja renderer (closes #9)

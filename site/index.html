@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Papéli — Papel de Carta Digital para Postfix</title>
+  <meta name="description" content="Papéli é um Postfix Milter em Rust puro que transforma emails corporativos em papel de carta responsivo com assinatura dupla inteligente.">
+  <meta property="og:title" content="Papéli — Papel de Carta Digital">
+  <meta property="og:description" content="Postfix Milter em Rust. Envelopa emails em papel de carta MJML responsivo e comprime assinaturas duplicadas em threads.">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    /* Específico da página inicial */
+    .hero-letter {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-size: 1.05rem;
+      color: #6d3a4a;
+      background: linear-gradient(135deg, #fff4f7, #ffe4ed);
+      border: 1px dashed #f48fb1;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+      position: relative;
+      line-height: 1.8;
+    }
+    .hero-letter::before {
+      content: '"';
+      font-size: 3rem;
+      color: #f48fb1;
+      position: absolute;
+      top: -0.5rem;
+      left: 0.75rem;
+      line-height: 1;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Borda Rendada Superior -->
+  <div class="lace-top"></div>
+
+  <!-- ─── Cabeçalho ─── -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="envelope-wrapper" title="Passe o mouse para abrir o envelope!">
+        <div class="envelope" aria-label="Envelope decorativo">
+          <div class="envelope-body"></div>
+          <div class="envelope-flap"></div>
+          <div class="envelope-letter">Papéli 💌</div>
+        </div>
+      </div>
+
+      <div class="logo-title">Papéli</div>
+      <div class="logo-subtitle">Papel de Carta Digital para Postfix &amp; Rust</div>
+
+      <div class="header-stamps">
+        <span class="stamp rust">🦀 Pure Rust</span>
+        <span class="stamp milter">📬 Postfix Milter</span>
+        <span class="stamp free">💚 MIT License</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Borda Rendada Sub-Header -->
+  <div class="lace-bottom" style="background-color: #fde8ef;"></div>
+
+  <!-- ─── Navegação ─── -->
+  <nav class="site-nav" aria-label="Navegação principal">
+    <div class="nav-inner">
+      <a href="index.html" class="active">🌸 Início</a>
+      <a href="docs.html">📖 Documentação</a>
+      <a href="downloads.html">📦 Instalação</a>
+      <a href="https://codeberg.org/lumenpink/papeli" target="_blank" rel="noopener">🦡 Codeberg</a>
+    </div>
+  </nav>
+
+  <!-- ─── Conteúdo Principal ─── -->
+  <main>
+
+    <!-- Hero -->
+    <section class="hero" aria-labelledby="hero-title">
+      <h1 class="hero-headline" id="hero-title">
+        Seus emails corporativos merecem <em>um papel de carta de verdade</em> 💌
+      </h1>
+
+      <p class="hero-description">
+        O <strong>Papéli</strong> é um Milter Postfix escrito em Rust puro que intercepta emails de saída
+        (portas 587 e 465) e os envelopa automaticamente em papel de carta responsivo
+        com assinatura dupla inteligente — tudo antes do OpenDKIM.
+      </p>
+
+      <div class="hero-letter">
+        <em>
+          Imagine que cada email da sua empresa chegasse como uma carta elegante,
+          com papel timbrado, assinatura completa e sem aquele lixo de HTML do Outlook.
+          Esse é o Papéli.
+        </em>
+      </div>
+
+      <div class="hero-actions">
+        <a href="docs.html" class="btn btn-primary">📖 Começar Agora</a>
+        <a href="downloads.html" class="btn btn-secondary">📦 Instalação</a>
+        <a href="https://codeberg.org/lumenpink/papeli" class="btn btn-secondary" target="_blank" rel="noopener">🦡 Código Fonte</a>
+      </div>
+    </section>
+
+    <!-- Fluxo de funcionamento -->
+    <section class="flow-section" aria-labelledby="flow-title">
+      <div class="flow-title" id="flow-title">Como funciona</div>
+      <div class="flow-chain" role="img" aria-label="Fluxo: Cliente de email → Postfix 587/465 → Papéli Milter → Sanitizer → Templates MJML → Assinaturas → OpenDKIM → Destinatário">
+        <div class="flow-node">📧 Cliente de Email</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">🏢 Postfix<br><small>587 / 465</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node highlight">🌸 Papéli<br><small>Milter</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">✂️ Sanitizer<br><small>Remove MSO/Word</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">📐 MJML<br><small>Templates</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">✍️ Assinaturas<br><small>Dupla</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">🔏 OpenDKIM</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">📬 Destinatário</div>
+      </div>
+      <p style="margin-top: 1rem; color: #6d3a4a; font-size: 0.9rem; opacity: 0.8;">
+        Transparente para o remetente. Sem alteração de cabeçalhos DKIM. Bypass automático para domínios não gerenciados.
+      </p>
+    </section>
+
+    <!-- Demonstrador Antes & Depois -->
+    <section class="demo-section" aria-labelledby="demo-title">
+      <h2 class="demo-section-title" id="demo-title">✨ Antes &amp; Depois</h2>
+
+      <div class="demo-grid">
+        <!-- ANTES -->
+        <div class="demo-panel before">
+          <div class="demo-panel-header">😬 Email cru do Outlook</div>
+          <div class="demo-panel-body">
+<pre style="all:unset; display:block; font-size:0.78rem; color:#546e7a; line-height:1.6; white-space:pre-wrap;">&lt;div class="WordSection1"&gt;
+&lt;p class="MsoNormal"&gt;Oi João,&lt;/p&gt;
+&lt;p class="MsoNormal"&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p class="MsoNormal"&gt;Segue o relatório.&lt;/p&gt;
+&lt;!--[if !supportAnnotations]--&gt;
+&lt;div class="MsoNormal"&gt;
+  &lt;b&gt;Carlos Silva&lt;/b&gt;&lt;br&gt;
+  Diretor | ACME Corp&lt;br&gt;
+  +55 11 99999-9999&lt;br&gt;
+  &lt;span class="MsoNormal"&gt;
+    Esta mensagem é confidencial...
+    (8 linhas de disclaimer)
+  &lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+Enviado do meu iPhone</pre>
+          </div>
+        </div>
+
+        <!-- DEPOIS -->
+        <div class="demo-panel after">
+          <div class="demo-panel-header">🌸 Após o Papéli</div>
+          <div class="demo-panel-body">
+            <div class="email-card-preview">
+              <div class="email-header-bar">
+                <strong>ACME Corp</strong> · <span style="opacity:0.7">carlos@acme.com</span>
+              </div>
+              <div class="email-body">
+                <p style="margin-bottom:0.5rem;">Oi João,</p>
+                <p style="margin-bottom:0.5rem;">Segue o relatório.</p>
+                <div class="email-sig">
+                  <strong>Carlos Silva</strong><br>
+                  Diretor de Tecnologia · ACME Corp<br>
+                  <span style="color:#c2185b;">+55 11 99999-9999</span><br>
+                  <small style="opacity:0.7;">Esta mensagem contém informações confidenciais.</small>
+                </div>
+              </div>
+            </div>
+            <p style="font-size:0.75rem; color:#c2185b; margin-top:0.6rem; text-align:center;">
+              ✅ HTML limpo · ✅ DKIM intacto · ✅ Responsivo
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="floral-divider">🌸 🌷 💐 🌷 🌸</div>
+
+    <!-- Cards de Features -->
+    <section aria-labelledby="features-title">
+      <h2 class="section-title" id="features-title">Funcionalidades</h2>
+      <p class="section-subtitle">O que o Papéli faz de especial pela sua correspondência</p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-icon">📎</span>
+          <h3>Anexos Intactos</h3>
+          <p>Preservação bit-a-bit de todos os anexos e imagens CID inline. SHA-256 verificado em cada mensagem.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">✂️</span>
+          <h3>Sanitização Cirúrgica</h3>
+          <p>Remove lixo MSO/Word (<code>WordSection1</code>, <code>MsoNormal</code>), VML, condicionais IE e rodapés de celular.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">✍️</span>
+          <h3>Assinatura Dupla Inteligente</h3>
+          <p>Assinatura longa no primeiro envio. Nas threads, colapsa para versão compacta — economizando até 70% dos bytes.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">📐</span>
+          <h3>Templates MJML</h3>
+          <p>Papel de carta responsivo compilado via MRML puro (Rust). Templates Jinja2 com variáveis por remetente.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">⚙️</span>
+          <h3>Config Hierárquica</h3>
+          <p>Resolução em 3 camadas: remetente específico → domínio → padrão global. Hot-reload sem reiniciar serviço.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">🦀</span>
+          <h3>Rust Puro &amp; Seguro</h3>
+          <p>Zero dependências de C no critical path. Socket UNIX ou TCP. Bypass automático para domínios não gerenciados.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">🔐</span>
+          <h3>DKIM Transparente</h3>
+          <p>Atua antes do OpenDKIM. Assinatura criptográfica sempre válida. Sem quebra de SPF/DMARC.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">🧪</span>
+          <h3>Suite de Testes Rigorosa</h3>
+          <p>30+ testes automatizados cobrindo MIME complexo, todos os clientes de email, tipos de conteúdo e edge cases.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="floral-divider">💌 ✉️ 📮 ✉️ 💌</div>
+
+    <!-- Assinatura Dupla -->
+    <section class="section-wrapper" aria-labelledby="sig-title">
+      <div class="letter-paper">
+        <h2 class="section-title mt-0" id="sig-title" style="border:none; font-family:'Sacramento',cursive; font-size:2.5rem;">
+          Assinatura Dupla Inteligente
+        </h2>
+        <p class="section-subtitle" style="margin-bottom:1.25rem;">
+          O problema do inchaço de assinaturas em threads longas, resolvido de forma determinística
+        </p>
+
+        <p>
+          Em um ambiente corporativo, uma thread com 5 respostas pode ter o mesmo bloco de assinatura
+          repetido 5 vezes — logos, disclaimers, telefones. O Papéli resolve isso com marcadores semânticos
+          rastreáveis, colapsando assinaturas históricas automaticamente.
+        </p>
+
+        <div class="sig-demo-wrapper">
+          <div class="sig-card long">
+            <h4>✍️ Assinatura Longa <span style="font-weight:300; color:#c2185b;">(mensagem atual)</span></h4>
+            <div class="sig-content">
+              <strong>Carlos Silva</strong><br>
+              Diretor de Tecnologia | ACME Corp<br>
+              Tel: +55 11 99999-9999<br>
+              www.acme.com<br>
+              <span style="opacity:0.6; font-size:0.75rem;">Esta mensagem contém informações confidenciais...</span>
+            </div>
+          </div>
+          <div class="sig-card short">
+            <h4>📌 Assinatura Curta <span style="font-weight:300; color:#2e7d32;">(histórico citado)</span></h4>
+            <div class="sig-content">
+              <span style="opacity:0.7;">— Carlos Silva (ACME Corp)</span>
+            </div>
+            <p style="font-size:0.78rem; margin-top:0.5rem; color:#2e7d32;">
+              ✅ Economiza até 70% dos bytes em threads longas
+            </p>
+          </div>
+        </div>
+
+        <div class="callout pink">
+          <span class="callout-icon">💡</span>
+          <div>
+            O Papéli usa marcadores HTML <code>data-papeli="signature"</code> e delimitadores
+            em texto puro (<code>&lt;!--papeli:sig:start:long--&gt;</code>) para identificar e colapsar
+            assinaturas antigas com precisão determinística.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Start -->
+    <section class="section-wrapper" aria-labelledby="quickstart-title">
+      <div class="letter-paper binder">
+        <div style="padding-left: 3.5rem;">
+          <h2 class="section-title mt-0" id="quickstart-title" style="border:none; font-family:'Sacramento',cursive; font-size:2.5rem; text-align:left;">
+            Início Rápido
+          </h2>
+
+          <h3>1. Compilar e instalar</h3>
+          <pre><code>git clone https://codeberg.org/lumenpink/papeli
+cd papeli
+cargo build --release
+sudo cp target/release/papeli /usr/local/bin/papeli</code></pre>
+
+          <h3>2. Configurar o Postfix</h3>
+          <p>Adicione o Papéli como milter exclusivamente nas portas de submission (<code>master.cf</code>):</p>
+          <pre><code>submission inet n - y - - smtpd
+  -o smtpd_milters=unix:/run/papeli/papeli.sock,inet:localhost:8891
+  -o milter_default_action=accept</code></pre>
+
+          <h3>3. Criar o arquivo de configuração</h3>
+          <pre><code>sudo mkdir -p /etc/papeli/templates
+sudo cp deploy/papeli.example.toml /etc/papeli/papeli.toml
+# Edite /etc/papeli/papeli.toml com suas configurações</code></pre>
+
+          <h3>4. Iniciar o serviço</h3>
+          <pre><code>sudo cp deploy/papeli.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now papeli
+sudo postfix reload</code></pre>
+
+          <div class="callout tip" style="margin-top:1.5rem;">
+            <span class="callout-icon">🌸</span>
+            <div>
+              <strong>Pronto!</strong> Seus próximos emails corporativos saem envelopados em papel de carta.
+              Veja a <a href="docs.html" style="color: var(--rosa-vintage);">documentação completa</a> para configurar templates, domínios e remetentes específicos.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ─── Footer ─── -->
+  <div class="lace-top" style="background-color: #880e4f;"></div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-logo">Papéli</div>
+      <div class="footer-tagline">Carta com carinho, código com rigor 💌</div>
+      <nav class="footer-links" aria-label="Links do rodapé">
+        <a href="index.html">Início</a>
+        <a href="docs.html">Documentação</a>
+        <a href="downloads.html">Instalação</a>
+        <a href="https://codeberg.org/lumenpink/papeli" target="_blank" rel="noopener">Codeberg</a>
+        <a href="https://codeberg.org/lumenpink/papeli/issues" target="_blank" rel="noopener">Issues</a>
+        <a href="https://codeberg.org/lumenpink/papeli/raw/branch/main/LICENSE-MIT" target="_blank" rel="noopener">Licença MIT</a>
+      </nav>
+      <div class="footer-copy">
+        🌸 Feito com amor, Rust e muita resistência ao HTML feio do Outlook · MIT License<br>
+        lumenpink &amp; contribuidores · 2026
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Tabs functionality
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const group = btn.closest('.tabs');
+        group.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        group.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        group.querySelector(`#${btn.dataset.tab}`).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
