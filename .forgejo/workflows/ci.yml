@@ -17,6 +17,8 @@ jobs:
   test:
     name: "Test & Build (Rust)"
     runs-on: ubuntu-latest
+    container:
+      image: codeberg.org/lumenpink/gost-ci-rust:latest
 
     steps:
       - name: "Checkout"
@@ -31,13 +33,6 @@ jobs:
             target
           key: cargo-${{ hashFiles('Cargo.lock') }}
           restore-keys: cargo-
-
-      - name: "Install stable Rust"
-        run: |
-          rustup update stable
-          rustup default stable
-          rustc --version
-          cargo --version
 
       - name: "cargo test — Unit & Integration Tests"
         run: cargo test --all-features -- --test-threads=4
@@ -57,6 +52,8 @@ jobs:
   deploy-site:
     name: "Deploy Documentation Site (papeli.2lp.in)"
     runs-on: ubuntu-latest
+    container:
+      image: codeberg.org/lumenpink/gost-ci-deploy:latest
     needs: [test]
     if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && github.event_name == 'push'
     env:
@@ -85,7 +82,7 @@ jobs:
             echo "::warning::Cloudflare credentials (CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID) not configured. Skipping Cloudflare deployment."
           else
             echo "Publishing static documentation site to papeli.2lp.in via Cloudflare Workers..."
-            npx wrangler deploy || echo "::warning::Cloudflare deployment exited with status $?. Continuing with Codeberg Pages fallback."
+            wrangler deploy || echo "::warning::Cloudflare deployment exited with status $?. Continuing with Codeberg Pages fallback."
           fi
 
       - name: "Deploy to Codeberg Pages (Fallback Redundancy)"
