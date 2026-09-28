@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Features
+  - (meta) gerar card oficial de opengraph e banner social (closes #16)
   - (site) add documentation site, forgejo ci and cloudflare pages deploy
   - (milter) dual unix/tcp listener and smtp event loop (closes #11)
   - (config) hierarchical resolution and live hot-reload (closes #10)
