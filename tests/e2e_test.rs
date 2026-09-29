@@ -1,8 +1,8 @@
 use papeli::config::Config;
 use papeli::milter::{
     handle_milter_stream, EmailProcessor, SMFIC_BODY, SMFIC_BODYEOB, SMFIC_CONNECT, SMFIC_EOH,
-    SMFIC_HEADER, SMFIC_HELO, SMFIC_MAIL, SMFIC_OPTNEG, SMFIC_QUIT, SMFIC_RCPT, SMFIR_REPLBODY,
-    SMFIS_CONTINUE,
+    SMFIC_HEADER, SMFIC_HELO, SMFIC_MAIL, SMFIC_OPTNEG, SMFIC_QUIT, SMFIC_RCPT, SMFIR_CHGHEADER,
+    SMFIR_REPLBODY, SMFIS_CONTINUE,
 };
 use papeli::mime::ParsedEmail;
 use sha2::{Digest, Sha256};
@@ -184,6 +184,8 @@ fn test_e2e_unix_socket_milter_session() {
 
     // Lê resposta
     let mut got_replbody = false;
+    let mut got_chgheader = false;
+    let mut content_type_header = String::new();
     let mut new_body_bytes = Vec::new();
 
     loop {
@@ -191,15 +193,32 @@ fn test_e2e_unix_socket_milter_session() {
         if frame[0] == SMFIR_REPLBODY {
             got_replbody = true;
             new_body_bytes.extend_from_slice(&frame[1..]);
+        } else if frame[0] == SMFIR_CHGHEADER {
+            got_chgheader = true;
+            if frame.len() > 5 {
+                let payload = &frame[5..];
+                if let Some(pos) = payload.iter().position(|&b| b == 0) {
+                    let name = std::str::from_utf8(&payload[..pos]).unwrap_or("");
+                    let val = std::str::from_utf8(&payload[pos + 1..])
+                        .unwrap_or("")
+                        .trim_matches('\0');
+                    if name.eq_ignore_ascii_case("content-type") {
+                        content_type_header = val.to_string();
+                    }
+                }
+            }
         } else if frame[0] == SMFIS_CONTINUE {
             break;
         }
     }
 
     assert!(got_replbody, "Deve receber frame SMFIR_REPLBODY via UNIX Socket");
+    assert!(got_chgheader, "Deve receber frame SMFIR_CHGHEADER via UNIX Socket");
 
-    // Valida o e-mail resultante recebido via socket UNIX
-    let parsed_result = ParsedEmail::parse(&new_body_bytes).unwrap();
+    // Valida o e-mail resultante como o MTA faz (combinando cabeçalhos editados com novo corpo)
+    let mut full_bytes = format!("Content-Type: {}\r\n\r\n", content_type_header).into_bytes();
+    full_bytes.extend_from_slice(&new_body_bytes);
+    let parsed_result = ParsedEmail::parse(&full_bytes).unwrap();
     assert_eq!(parsed_result.attachments.len(), 1);
     assert!(parsed_result.body_html.unwrap().contains("papeli-sig-long"));
 

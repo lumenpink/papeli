@@ -18,19 +18,25 @@ use std::sync::{Arc, RwLock};
 
 // Protocol constants
 pub const SMFIC_OPTNEG: u8 = b'O';
+pub const SMFIC_MACRO: u8 = b'D';
 pub const SMFIC_CONNECT: u8 = b'C';
 pub const SMFIC_HELO: u8 = b'H';
 pub const SMFIC_MAIL: u8 = b'M';
 pub const SMFIC_RCPT: u8 = b'R';
+pub const SMFIC_DATA: u8 = b'T';
 pub const SMFIC_HEADER: u8 = b'L';
 pub const SMFIC_EOH: u8 = b'N';
 pub const SMFIC_BODY: u8 = b'B';
 pub const SMFIC_BODYEOB: u8 = b'E';
 pub const SMFIC_ABORT: u8 = b'A';
 pub const SMFIC_QUIT: u8 = b'Q';
+pub const SMFIC_QUIT_NC: u8 = b'K';
+pub const SMFIC_UNKNOWN: u8 = b'U';
 
 pub const SMFIS_CONTINUE: u8 = b'c';
 pub const SMFIR_REPLBODY: u8 = b'b';
+pub const SMFIR_CHGHEADER: u8 = b'm';
+pub const SMFIR_ADDHEADER: u8 = b'h';
 
 pub const SMFIF_ADDHDRS: u32 = 0x00000001;
 pub const SMFIF_CHGBODY: u32 = 0x00000002;
@@ -167,7 +173,10 @@ pub fn handle_milter_stream<S: Read + Write>(mut stream: S, processor: &EmailPro
 
                 send_frame(&mut stream, &response);
             }
-            SMFIC_CONNECT | SMFIC_HELO | SMFIC_MAIL | SMFIC_RCPT => {
+            SMFIC_MACRO => {
+                // Notificação unidirecional do MTA. O Milter NUNCA deve responder a macros!
+            }
+            SMFIC_CONNECT | SMFIC_HELO | SMFIC_MAIL | SMFIC_RCPT | SMFIC_DATA | SMFIC_UNKNOWN => {
                 send_simple_response(&mut stream, SMFIS_CONTINUE);
             }
             SMFIC_HEADER => {
@@ -218,8 +227,20 @@ pub fn handle_milter_stream<S: Read + Write>(mut stream: S, processor: &EmailPro
 
                 if let Some(new_email_bytes) = processor.process_email(&full_message) {
                     eprintln!("[papeli] Email processed and modified! New len={}", new_email_bytes.len());
-                    // Envia replbody em pedaços de no máximo 65535 bytes
-                    for chunk in new_email_bytes.chunks(65000) {
+                    let (header_part, body_part) = split_headers_body(&new_email_bytes);
+
+                    // 1. Atualiza cabeçalho Content-Type para o novo boundary gerado
+                    if let Some(ctype) = extract_header_value(header_part, "Content-Type") {
+                        send_change_header(&mut stream, 1, "Content-Type", &ctype);
+                    }
+                    if let Some(mime_ver) = extract_header_value(header_part, "MIME-Version") {
+                        send_change_header(&mut stream, 1, "MIME-Version", &mime_ver);
+                    }
+                    // Remove Content-Transfer-Encoding no nível superior, pois multipart/* não pode ter CTE base64/qp raiz
+                    send_change_header(&mut stream, 1, "Content-Transfer-Encoding", "");
+
+                    // 2. Envia replbody exclusivamente com o corpo da mensagem (após CRLF CRLF)
+                    for chunk in body_part.chunks(65000) {
                         let mut repl_packet = Vec::with_capacity(chunk.len() + 1);
                         repl_packet.push(SMFIR_REPLBODY);
                         repl_packet.extend_from_slice(chunk);
@@ -237,7 +258,7 @@ pub fn handle_milter_stream<S: Read + Write>(mut stream: S, processor: &EmailPro
                 header_buffer.clear();
                 body_buffer.clear();
             }
-            SMFIC_QUIT => {
+            SMFIC_QUIT | SMFIC_QUIT_NC => {
                 break;
             }
             _ => {
@@ -245,6 +266,63 @@ pub fn handle_milter_stream<S: Read + Write>(mut stream: S, processor: &EmailPro
             }
         }
     }
+}
+
+pub fn split_headers_body(raw: &[u8]) -> (&[u8], &[u8]) {
+    if let Some(pos) = raw.windows(4).position(|w| w == b"\r\n\r\n") {
+        (&raw[..pos], &raw[pos + 4..])
+    } else if let Some(pos) = raw.windows(2).position(|w| w == b"\n\n") {
+        (&raw[..pos], &raw[pos + 2..])
+    } else {
+        (b"", raw)
+    }
+}
+
+pub fn extract_header_value(headers: &[u8], target_name: &str) -> Option<String> {
+    let headers_str = std::str::from_utf8(headers).ok()?;
+    let target = target_name.to_lowercase();
+    let mut current_header: Option<(String, String)> = None;
+    let mut result = None;
+
+    for line in headers_str.lines() {
+        if line.starts_with(' ') || line.starts_with('\t') {
+            if let Some((_, ref mut val)) = current_header {
+                val.push(' ');
+                val.push_str(line.trim());
+            }
+        } else {
+            if let Some((name, val)) = current_header.take() {
+                if name == target {
+                    result = Some(val);
+                    break;
+                }
+            }
+            if let Some(colon_pos) = line.find(':') {
+                let name = line[..colon_pos].trim().to_lowercase();
+                let val = line[colon_pos + 1..].trim().to_string();
+                current_header = Some((name, val));
+            }
+        }
+    }
+    if result.is_none() {
+        if let Some((name, val)) = current_header {
+            if name == target {
+                result = Some(val);
+            }
+        }
+    }
+    result
+}
+
+pub fn send_change_header<W: Write>(writer: &mut W, index: u32, name: &str, value: &str) {
+    let mut pkt = Vec::new();
+    pkt.push(SMFIR_CHGHEADER);
+    pkt.extend_from_slice(&index.to_be_bytes());
+    pkt.extend_from_slice(name.as_bytes());
+    pkt.push(0);
+    pkt.extend_from_slice(value.as_bytes());
+    pkt.push(0);
+    send_frame(writer, &pkt);
 }
 
 fn send_frame<W: Write>(writer: &mut W, data: &[u8]) {
