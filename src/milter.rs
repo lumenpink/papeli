@@ -133,7 +133,8 @@ impl EmailProcessor {
 }
 
 pub fn handle_milter_stream<S: Read + Write>(mut stream: S, processor: &EmailProcessor) {
-    let mut raw_message_buffer = Vec::new();
+    let mut header_buffer = Vec::new();
+    let mut body_buffer = Vec::new();
 
     loop {
         // Leitura do frame Milter: 4 bytes len (big endian)
@@ -170,7 +171,20 @@ pub fn handle_milter_stream<S: Read + Write>(mut stream: S, processor: &EmailPro
                 send_simple_response(&mut stream, SMFIS_CONTINUE);
             }
             SMFIC_HEADER => {
-                // Armazena cabeçalho na mensagem bruta se estiver compondo
+                if let Some(pos) = payload.iter().position(|&b| b == 0) {
+                    let name = &payload[..pos];
+                    let mut val = &payload[pos + 1..];
+                    if let Some(val_pos) = val.iter().position(|&b| b == 0) {
+                        val = &val[..val_pos];
+                    }
+                    header_buffer.extend_from_slice(name);
+                    header_buffer.extend_from_slice(b": ");
+                    header_buffer.extend_from_slice(val);
+                    header_buffer.extend_from_slice(b"\r\n");
+                } else {
+                    header_buffer.extend_from_slice(payload);
+                    header_buffer.extend_from_slice(b"\r\n");
+                }
                 send_simple_response(&mut stream, SMFIS_CONTINUE);
             }
             SMFIC_EOH => {
@@ -178,12 +192,32 @@ pub fn handle_milter_stream<S: Read + Write>(mut stream: S, processor: &EmailPro
             }
             SMFIC_BODY => {
                 // Acumula chunks do corpo
-                raw_message_buffer.extend_from_slice(payload);
+                body_buffer.extend_from_slice(payload);
                 send_simple_response(&mut stream, SMFIS_CONTINUE);
             }
             SMFIC_BODYEOB => {
                 // Fim da mensagem: processar e substituir corpo se necessário
-                if let Some(new_email_bytes) = processor.process_email(&raw_message_buffer) {
+                let full_message = if header_buffer.is_empty() {
+                    body_buffer.clone()
+                } else if body_buffer.starts_with(b"From:")
+                    || body_buffer.starts_with(b"From: ")
+                    || body_buffer.starts_with(b"Received:")
+                    || body_buffer.starts_with(b"Return-Path:")
+                {
+                    body_buffer.clone()
+                } else {
+                    let mut full = Vec::with_capacity(header_buffer.len() + 2 + body_buffer.len());
+                    full.extend_from_slice(&header_buffer);
+                    full.extend_from_slice(b"\r\n");
+                    full.extend_from_slice(&body_buffer);
+                    full
+                };
+
+                eprintln!("[papeli] EOB received. headers_len={}, body_len={}, full_len={}", 
+                    header_buffer.len(), body_buffer.len(), full_message.len());
+
+                if let Some(new_email_bytes) = processor.process_email(&full_message) {
+                    eprintln!("[papeli] Email processed and modified! New len={}", new_email_bytes.len());
                     // Envia replbody em pedaços de no máximo 65535 bytes
                     for chunk in new_email_bytes.chunks(65000) {
                         let mut repl_packet = Vec::with_capacity(chunk.len() + 1);
@@ -191,13 +225,17 @@ pub fn handle_milter_stream<S: Read + Write>(mut stream: S, processor: &EmailPro
                         repl_packet.extend_from_slice(chunk);
                         send_frame(&mut stream, &repl_packet);
                     }
+                } else {
+                    eprintln!("[papeli] process_email returned None (bypass or parse error)");
                 }
 
                 send_simple_response(&mut stream, SMFIS_CONTINUE);
-                raw_message_buffer.clear();
+                header_buffer.clear();
+                body_buffer.clear();
             }
             SMFIC_ABORT => {
-                raw_message_buffer.clear();
+                header_buffer.clear();
+                body_buffer.clear();
             }
             SMFIC_QUIT => {
                 break;

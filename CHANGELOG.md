@@ -12,5 +12,8 @@
   - (sanitizer) strip toxic HTML and isolate email content (closes #7)
   - (mime) parse and reconstruct MIME tree preserving attachments (closes #6)
 
+### Bug Fixes
+  - (milter) parse SMFIC_HEADER with null delimiters and insert EOH CRLF
+
 ## Previous Releases
 
