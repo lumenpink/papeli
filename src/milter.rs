@@ -103,6 +103,14 @@ impl EmailProcessor {
             t
         } else if let Some(t) = header_theme {
             t
+        } else if resolved.template_strategy.eq_ignore_ascii_case("random")
+            || resolved.template_strategy.eq_ignore_ascii_case("round-robin")
+        {
+            self.template_selector.select_theme(
+                None,
+                resolved.template_pool.as_deref(),
+                &resolved.template_strategy,
+            )
         } else if let Some(t) = &resolved.template_html {
             t.clone()
         } else {

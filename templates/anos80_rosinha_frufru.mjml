@@ -29,9 +29,6 @@
           ୨୧ ┈┈┈┈┈┈┈┈┈┈┈┈┈ ♡ ┈┈┈┈┈┈┈┈┈┈┈┈┈ ୨୧
         </mj-text>
 
-        {% if logo_url %}
-        <mj-image src="{{ logo_url }}" width="120px" align="center" padding="0 0 16px 0" alt="Logotipo" />
-        {% endif %}
 
         <mj-text padding="14px 20px" font-size="15px" line-height="26px" color="#374151">
           {{ content_html }}

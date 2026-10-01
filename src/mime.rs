@@ -130,8 +130,13 @@ impl ParsedEmail {
             }
         }
 
-        let is_plain_only = msg.is_content_type("text", "plain");
-        let is_html_only = msg.is_content_type("text", "html");
+        let has_explicit_html = msg.parts.iter().any(|p| p.is_text_html());
+        let has_explicit_text = msg.parts.iter().any(|p| p.is_text() && !p.is_text_html())
+            || msg.is_content_type("text", "plain")
+            || !has_explicit_html;
+
+        let is_plain_only = !has_explicit_html;
+        let is_html_only = has_explicit_html && !has_explicit_text;
 
         let body_text = if is_html_only {
             None

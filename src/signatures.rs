@@ -10,7 +10,10 @@ pub struct SignatureConfig<'a> {
 }
 
 pub fn default_short_html(sender_name: &str, company_name: &str) -> String {
-    let label = if company_name.is_empty() || company_name.eq_ignore_ascii_case("lumen") {
+    let label = if company_name.is_empty()
+        || company_name.eq_ignore_ascii_case("lumen")
+        || company_name.eq_ignore_ascii_case("baquara")
+    {
         sender_name.to_string()
     } else {
         format!("{} ({})", sender_name, company_name)
@@ -22,10 +25,20 @@ pub fn default_short_html(sender_name: &str, company_name: &str) -> String {
 }
 
 pub fn default_short_text(sender_name: &str, company_name: &str) -> String {
-    format!(
-        "<!--papeli:sig:start:short-->\n— {} ({})\n<!--papeli:sig:end:short-->",
-        sender_name, company_name
-    )
+    if company_name.is_empty()
+        || company_name.eq_ignore_ascii_case("lumen")
+        || company_name.eq_ignore_ascii_case("baquara")
+    {
+        format!(
+            "<!--papeli:sig:start:short-->\n— {}\n<!--papeli:sig:end:short-->",
+            sender_name
+        )
+    } else {
+        format!(
+            "<!--papeli:sig:start:short-->\n— {} ({})\n<!--papeli:sig:end:short-->",
+            sender_name, company_name
+        )
+    }
 }
 
 pub fn collapse_historical_signatures_html(html: &str, fallback_short_html: &str) -> String {

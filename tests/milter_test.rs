@@ -22,6 +22,7 @@ fn sample_config() -> Arc<RwLock<Config>> {
     [default]
     company_name = "Papéli Test"
     logo_url = "https://empresa.com/logo.png"
+    template_html = "default"
 
     [domains."acme.com"]
     company_name = "ACME Corporation"

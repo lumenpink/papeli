@@ -156,3 +156,14 @@ fn test_mime_reconstruction_with_multiple_inline_assets() {
     assert_eq!(reconstructed.attachments[0].content_id.as_deref(), Some("grad.png"));
     assert_eq!(reconstructed.attachments[1].content_id.as_deref(), Some("corner_tl.png"));
 }
+
+#[test]
+fn test_mime_without_content_type() {
+    let raw = b"From: hi@lumen.pink\nTo: hi@lumen.pink\nSubject: Test\n\n# Heading\nLine 1\n";
+    let parsed = ParsedEmail::parse(raw).unwrap();
+    assert!(parsed.is_plain_only);
+    assert!(parsed.body_html.is_none());
+    assert_eq!(parsed.body_text.as_deref(), Some("# Heading\nLine 1\n"));
+}
+
+

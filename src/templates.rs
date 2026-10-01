@@ -434,7 +434,7 @@ pub fn build_long_signature_text(
     company_name: Option<&str>,
     disclaimer: Option<&str>,
 ) -> String {
-    let name = sender_name.unwrap_or("Equipe");
+    let name = sender_name.unwrap_or("Lumen Pink");
     let role = sender_role.unwrap_or("");
     let phone = sender_phone.unwrap_or("");
     let company = company_name.unwrap_or("");

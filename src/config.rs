@@ -127,7 +127,20 @@ impl Config {
             .default
             .template_strategy
             .clone()
-            .unwrap_or_else(|| "round-robin".to_string());
+            .unwrap_or_else(|| {
+                if template_html.is_some() {
+                    "static".to_string()
+                } else {
+                    "round-robin".to_string()
+                }
+            });
+        if self.default.template_strategy.as_deref() == Some("random")
+            || self.default.template_strategy.as_deref() == Some("round-robin")
+        {
+            if self.default.template_html.is_none() {
+                template_html = None;
+            }
+        }
         let mut disclaimer = self.default.disclaimer.clone();
         let mut sender_name = self.default.sender_name.clone();
         let mut sender_role = self.default.sender_role.clone();
@@ -165,6 +178,12 @@ impl Config {
                 }
                 if let Some(strat) = &dom_cfg.template_strategy {
                     template_strategy = strat.clone();
+                    if dom_cfg.template_html.is_none()
+                        && (strat.eq_ignore_ascii_case("random")
+                            || strat.eq_ignore_ascii_case("round-robin"))
+                    {
+                        template_html = None;
+                    }
                 }
                 if dom_cfg.disclaimer.is_some() {
                     disclaimer = dom_cfg.disclaimer.clone();
@@ -208,6 +227,12 @@ impl Config {
                 }
                 if let Some(strat) = &snd_cfg.template_strategy {
                     template_strategy = strat.clone();
+                    if snd_cfg.template_html.is_none()
+                        && (strat.eq_ignore_ascii_case("random")
+                            || strat.eq_ignore_ascii_case("round-robin"))
+                    {
+                        template_html = None;
+                    }
                 }
                 if snd_cfg.disclaimer.is_some() {
                     disclaimer = snd_cfg.disclaimer.clone();
