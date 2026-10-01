@@ -1,0 +1,61 @@
+<mjml>
+  <mj-head>
+    <mj-title>{{ subject | default("Carta") }}</mj-title>
+    <mj-attributes>
+      <mj-all font-family="Georgia, 'Times New Roman', Palatino, serif" />
+      <mj-text font-size="15px" line-height="25px" color="#374151" />
+    </mj-attributes>
+    <mj-style>
+      .paper-sheet {
+        min-height: 848px !important;
+        box-sizing: border-box !important;
+      }
+      .header-name {
+        letter-spacing: 2px !important;
+      }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#fdf2f8">
+    <mj-section padding="24px 0 0 0">
+    </mj-section>
+
+    <!-- Folha Central de Papel de Carta na Proporção 1:√2 (min-height: 848px) -->
+    <mj-section background-color="#ffffff" border="2px solid #e879f9" border-radius="12px" padding="28px 24px" css-class="paper-sheet">
+      <mj-column width="100%">
+        <mj-text align="center" padding="10px 0 4px 0" font-size="20px" font-weight="bold" color="#a21caf" css-class="header-name">
+          {{ header_title | default("Lumen Pink") }}
+        </mj-text>
+        <mj-text align="center" padding="0 0 20px 0" font-size="12px" color="#e879f9">
+          🌈 ┈┈┈┈┈┈┈┈┈┈┈┈┈ ⋆ ┈┈┈┈┈┈┈┈┈┈┈┈┈ 🌈
+        </mj-text>
+
+        {% if logo_url %}
+        <mj-image src="{{ logo_url }}" width="120px" align="center" padding="0 0 16px 0" alt="Logotipo" />
+        {% endif %}
+
+        <mj-text padding="14px 20px" font-size="15px" line-height="26px" color="#374151">
+          {{ content_html }}
+        </mj-text>
+
+        <mj-text align="center" padding="28px 0 14px 0" font-size="12px" color="#e879f9">
+          ⋆ ┈┈┈┈┈┈┈┈┈┈┈┈┈ 🌈 ┈┈┈┈┈┈┈┈┈┈┈┈┈ ⋆
+        </mj-text>
+
+        <mj-text padding="5px 20px" font-size="14px" line-height="24px" color="#4b5563">
+          {{ signature_html }}
+        </mj-text>
+
+        <mj-text align="center" padding="24px 0 10px 0" font-size="11px" font-style="italic" color="#e879f9">
+          *+:｡.｡ Cores suaves de alegria ｡.｡:+*
+        </mj-text>
+
+        <mj-text align="center" padding="10px 0 0 0" font-size="11px" color="#e879f9">
+          🌟 &nbsp; <a href="https://lumen.pink" style="color: #e879f9; text-decoration: none; font-weight: bold;">lumen.pink</a> &nbsp; 🌟
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="0 0 24px 0">
+    </mj-section>
+  </mj-body>
+</mjml>

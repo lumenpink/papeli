@@ -239,26 +239,51 @@ impl ParsedEmail {
 
         // Custom headers (ex: X-Mailer, User-Agent, etc.)
         for (name, value) in &self.custom_headers {
-            builder = builder.header(name.as_str(), Raw::new(value.as_str()));
-        }
-
-        // Configura corpos de texto e html sempre juntos como multipart/alternative
-        builder = builder.text_body(new_text);
-        builder = builder.html_body(new_html);
-
-        // Adiciona anexos e imagens inline
-        for att in &self.attachments {
-            if att.is_inline {
-                let cid = att.content_id.as_deref().unwrap_or(att.name.as_str());
-                builder = builder.inline(att.content_type.as_str(), cid, att.data.as_slice());
-            } else {
-                builder = builder.attachment(
-                    att.content_type.as_str(),
-                    att.name.as_str(),
-                    att.data.as_slice(),
-                );
+            if !name.eq_ignore_ascii_case("x-papeli-processed") {
+                builder = builder.header(name.as_str(), Raw::new(value.as_str()));
             }
         }
+        builder = builder.header("X-Papeli-Processed", Raw::new("true"));
+
+        use mail_builder::mime::MimePart;
+
+        // Separa anexos comuns (arquivos) de imagens inline referenciadas por CID
+        let (inlines, regular_attachments): (Vec<_>, Vec<_>) =
+            self.attachments.iter().partition(|a| a.is_inline);
+
+        let text_part = MimePart::new("text/plain", new_text);
+        let html_part = MimePart::new("text/html", new_html).inline();
+        let alt_part = MimePart::new("multipart/alternative", vec![text_part, html_part]);
+
+        let related_or_alt = if inlines.is_empty() {
+            alt_part
+        } else {
+            let mut related_parts = Vec::with_capacity(inlines.len() + 1);
+            related_parts.push(alt_part);
+            for att in inlines {
+                let cid = att.content_id.as_deref().unwrap_or(att.name.as_str());
+                let part = MimePart::new(att.content_type.as_str(), att.data.clone())
+                    .inline()
+                    .cid(cid);
+                related_parts.push(part);
+            }
+            MimePart::new("multipart/related", related_parts)
+        };
+
+        let body_part = if regular_attachments.is_empty() {
+            related_or_alt
+        } else {
+            let mut mixed_parts = Vec::with_capacity(regular_attachments.len() + 1);
+            mixed_parts.push(related_or_alt);
+            for att in regular_attachments {
+                let part = MimePart::new(att.content_type.as_str(), att.data.clone())
+                    .attachment(att.name.as_str());
+                mixed_parts.push(part);
+            }
+            MimePart::new("multipart/mixed", mixed_parts)
+        };
+
+        builder = builder.body(body_part);
 
         builder
             .write_to_vec()

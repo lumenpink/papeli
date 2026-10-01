@@ -150,18 +150,76 @@ submissions inet n       -       y       -       -       smtpd
 
 ---
 
+## 💌 Coleção Oficial de Papéis de Carta Anos 80
+
+O Papéli vem de fábrica com **10 modelos de papel de carta inspirados nos anos 80**, projetados com estética clássica, proporção de folha física de papel ($1:\sqrt{2}$, `min-height: 848px`) e imunidade absoluta a bloqueios de imagens:
+
+| # | Tema (`canonical_name`) | Inspiração Visual | Emoji | Paleta / Destaque |
+| :-: | :--- | :--- | :-: | :--- |
+| **01** | `anos80_rosinha_frufru` | Laços, fitas & rendas vintage | 🎀 | Rosa Frufru (`#be185d` / `#f472b6`) |
+| **02** | `anos80_moranguinho` | Confeitos & frutinhas doces | 🍓 | Vermelho Morango (`#e11d48` / `#fb7185`) |
+| **03** | `anos80_lavanda_sonho` | Jardim floral poético de 1985 | 🪻 | Lavanda Violeta (`#6d28d9` / `#a78bfa`) |
+| **04** | `anos80_nuvem_algodao` | Céu azul bebê & estrelinhas | ☁️ | Azul Celeste (`#0284c7` / `#38bdf8`) |
+| **05** | `anos80_menta_fresca` | Cartão postal vintage 1980 | 🍃 | Verde Menta Retrô (`#16a34a` / `#4ade80`) |
+| **06** | `anos80_caderno_pautado` | Folha escolar com margens | ✏️ | Grafite & Pauta (`#334155` / `#94a3b8`) |
+| **07** | `anos80_carta_romantica` | Pergaminho baunilha & selo | 💌 | Âmbar Dourado (`#b45309` / `#f59e0b`) |
+| **08** | `anos80_constelacao_pop` | Galáxia pop neon dos anos 80 | ✨ | Roxo Estelar (`#7e22ce` / `#c084fc`) |
+| **09** | `anos80_jardim_encantado` | Pêssego & botânica romântica | 🌸 | Pêssego Floral (`#ea580c` / `#fb923c`) |
+| **10** | `anos80_arcoiris_pastel` | Arco-íris em degradê suave | 🌈 | Magenta Suave (`#a21caf` / `#e879f9`) |
+
+---
+
+## 🎲 Estratégias de Seleção de Temas
+
+O Papéli oferece seleção dinâmica configurável por domínio ou remetente no `papeli.toml`:
+
+### 1. Seleção Aleatória (`random`)
+Sorteia dinamicamente um dos modelos a cada novo e-mail enviado:
+```toml
+[domains."lumen.pink"]
+header_title = "Lumen Pink"
+template_strategy = "random"
+```
+
+### 2. Rodízio Sequencial (`round-robin`)
+Alterna de forma determinística e atômica (`AtomicUsize`) entre os modelos da coleção:
+```toml
+[domains."lumen.pink"]
+template_strategy = "round-robin"
+```
+
+### 3. Seleção Explícita por Assunto ou Cabeçalho
+O remetente pode escolher o modelo diretamente ao redigir:
+* **No Assunto:** Adicione `[tema:frufru]`, `[tema:moranguinho]` ou `#lavanda`. O Milter consome a tag e entrega o assunto limpo ao destinatário!
+* **No Cabeçalho MIME:** `X-Papeli-Theme: menta`
+
+---
+
+## 💻 Suporte a Markdown & Clientes de Terminal (`aerc`)
+
+Ideal para usuários de terminais e clientes TUI como o `aerc`:
+* Quando um e-mail é enviado em **texto simples puro** (`text/plain`), o Papéli compila automaticamente a mensagem via `pulldown-cmark` (CommonMark + extensões GFM).
+* **Emojis Temáticos nos Títulos:** Títulos em Markdown (`#`, `##`, `###`) recebem automaticamente o emoji e o sublinhado elegante da paleta do tema ativo.
+* **Tabelas Estilizadas:** Tabelas em Markdown (`| Coluna | Status |`) ganham cabeçalhos temáticos em tom pastel, células com bordas suaves e espaçamento confortável.
+* **Citações e Código:** Blocos de citação (`>`) e trechos de código (`code`/`pre`) herdam a cor de destaque do tema.
+* **Sem Poluição WYSIWYG:** Garante uma folha de carta 100% fiel, sem conflitos de estilos herdados de editores ricos.
+
+---
+
 ## 🗺️ Roadmap de Implementação
 
-- [ ] **#2 `infra(setup)`**: Setup inicial do workspace Rust, CI, hooks CCCP e documentação base.
-- [ ] **#5 `test(fixtures)`**: Suíte massiva de fixtures de e-mails reais (Outlook, Gmail, Apple Mail, Thunderbird).
-- [ ] **#6 `feat(mime)`**: Motor de manipulação e remontagem da árvore MIME sem quebrar anexos.
-- [ ] **#7 `feat(sanitizer)`**: Sanitizador e extrator de conteúdo semântico com whitelist estrita.
-- [ ] **#8 `feat(signatures)`**: Sistema de dupla assinatura (longa ativa vs curta no histórico).
-- [ ] **#9 `feat(templates)`**: Engine de templates com MJML nativo (`mrml`) e MiniJinja.
-- [ ] **#10 `feat(config)`**: Gestor de configurações hierárquico e Hot-Reload (`papeli.toml`).
-- [ ] **#11 `feat(milter)`**: Daemon Milter com suporte duplo (UNIX Socket e TCP inet).
-- [ ] **#12 `test(e2e)`**: Bateria completa de testes automatizados ponta a ponta e estresse.
-- [ ] **#13 `docs(postfix)`**: Guia de implantação em produção e integração com Postfix/DKIM.
+- [x] **#2 `infra(setup)`**: Setup inicial do workspace Rust, CI, hooks CCCP e documentação base.
+- [x] **#5 `test(fixtures)`**: Suíte massiva de fixtures de e-mails reais (Outlook, Gmail, Apple Mail, Thunderbird).
+- [x] **#6 `feat(mime)`**: Motor de manipulação e remontagem da árvore MIME sem quebrar anexos (RFC 2387).
+- [x] **#7 `feat(sanitizer)`**: Sanitizador e extrator de conteúdo semântico com whitelist estrita.
+- [x] **#8 `feat(signatures)`**: Sistema de dupla assinatura (longa ativa vs curta no histórico).
+- [x] **#9 `feat(templates)`**: Engine de templates com MJML nativo (`mrml`), MiniJinja e os 10 modelos Anos 80.
+- [x] **#10 `feat(config)`**: Gestor de configurações hierárquico e Hot-Reload (`papeli.toml`).
+- [x] **#11 `feat(milter)`**: Daemon Milter com suporte duplo (UNIX Socket e TCP inet).
+- [x] **#12 `test(e2e)`**: Bateria completa de testes automatizados ponta a ponta e estresse (35/35 testes).
+- [x] **#13 `docs(postfix)`**: Guia de implantação em produção e integração com Postfix/DKIM.
+- [x] **#14 `feat(markdown)`**: Compilador Markdown nativo para clientes de texto/terminal (`aerc`).
+- [x] **#15 `feat(themes)`**: Estratégias `random`, `round-robin` e seleção via tags de assunto.
 
 ---
 

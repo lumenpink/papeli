@@ -124,3 +124,35 @@ fn test_mime_reconstruction_preserves_headers_and_threading() {
     assert_eq!(reconstructed.references, original.references);
     assert_eq!(reconstructed.sender_email, original.sender_email);
 }
+
+#[test]
+fn test_mime_reconstruction_with_multiple_inline_assets() {
+    use papeli::mime::EmailAttachment;
+
+    let raw = load_fixture("raw_plain_text.eml");
+    let mut original = ParsedEmail::parse(&raw).unwrap();
+    original.attachments.push(EmailAttachment {
+        name: "grad.png".to_string(),
+        content_type: "image/png".to_string(),
+        data: vec![1, 2, 3, 4],
+        content_id: Some("grad.png".to_string()),
+        is_inline: true,
+    });
+    original.attachments.push(EmailAttachment {
+        name: "corner_tl.png".to_string(),
+        content_type: "image/png".to_string(),
+        data: vec![5, 6, 7, 8],
+        content_id: Some("corner_tl.png".to_string()),
+        is_inline: true,
+    });
+
+    let reconstructed_raw = original
+        .reconstruct("text", "<html><img src=\"cid:corner_tl.png\"></html>")
+        .unwrap();
+
+    let reconstructed = ParsedEmail::parse(&reconstructed_raw).unwrap();
+
+    assert_eq!(reconstructed.attachments.len(), 2);
+    assert_eq!(reconstructed.attachments[0].content_id.as_deref(), Some("grad.png"));
+    assert_eq!(reconstructed.attachments[1].content_id.as_deref(), Some("corner_tl.png"));
+}

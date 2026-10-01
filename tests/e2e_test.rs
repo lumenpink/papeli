@@ -102,12 +102,16 @@ fn test_e2e_all_fixtures_pass_through_processor() {
     // As 3 anteriores foram convertidas em curtas
     assert_eq!(thread_html.matches("papeli-sig-short").count(), 3);
 
-    // 5. Raw Plain Text: Promovido para Alternative
+    // 5. Raw Plain Text: Promovido para Alternative e preserva o texto no HTML
     let raw_text = load_fixture("raw_plain_text.eml");
     let processed_text = processor.process_email(&raw_text).unwrap();
     let result_text = ParsedEmail::parse(&processed_text).unwrap();
     assert!(result_text.body_html.is_some());
     assert!(result_text.body_text.is_some());
+    assert!(
+        result_text.body_html.unwrap().contains("O gateway de pagamento passará por atualização"),
+        "O texto da mensagem original DEVE constar no HTML gerado!"
+    );
 
     // 6. Outlook MSO: Limpeza de lixo WordSection e MSO
     let raw_mso = load_fixture("outlook_desktop_mso.eml");

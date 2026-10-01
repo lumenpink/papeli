@@ -1,13 +1,13 @@
 use crate::config::Config;
 use crate::mime::ParsedEmail;
-use crate::sanitizer::{clean_plain_text, sanitize_html};
+use crate::sanitizer::{clean_plain_text, plain_text_to_html, sanitize_html};
 use crate::signatures::{
     collapse_historical_signatures_html, collapse_historical_signatures_text, default_short_html,
     default_short_text,
 };
 use crate::templates::{
-    build_long_signature_html, build_long_signature_text, TemplateEngine, DEFAULT_MJML_TEMPLATE,
-    DEFAULT_TEXT_TEMPLATE,
+    build_long_signature_html, build_long_signature_text, extract_theme_tag, TemplateEngine,
+    TemplateSelector, DEFAULT_TEXT_TEMPLATE,
 };
 use minijinja::context;
 use std::io::{Read, Write};
@@ -45,6 +45,7 @@ pub const SMFIF_CHGHDRS: u32 = 0x00000010;
 pub struct EmailProcessor {
     config: Arc<RwLock<Config>>,
     template_engine: Arc<TemplateEngine>,
+    template_selector: Arc<TemplateSelector>,
 }
 
 impl EmailProcessor {
@@ -52,11 +53,12 @@ impl EmailProcessor {
         Self {
             config,
             template_engine: Arc::new(TemplateEngine::new()),
+            template_selector: Arc::new(TemplateSelector::new()),
         }
     }
 
     pub fn process_email(&self, raw_bytes: &[u8]) -> Option<Vec<u8>> {
-        let email = match ParsedEmail::parse(raw_bytes) {
+        let mut email = match ParsedEmail::parse(raw_bytes) {
             Ok(e) => e,
             Err(_) => return None,
         };
@@ -71,17 +73,67 @@ impl EmailProcessor {
             return None;
         }
 
+        // Bypass: Se o e-mail já foi processado anteriormente pelo Papéli, não reprocessa
+        if email
+            .custom_headers
+            .iter()
+            .any(|(k, _)| k.eq_ignore_ascii_case("x-papeli-processed"))
+        {
+            return None;
+        }
+
+        // 0. Detectar tema manual via Assunto ou Cabeçalho X-Papeli-Theme
+        let (clean_subject, subject_theme) = email
+            .subject
+            .as_deref()
+            .map(extract_theme_tag)
+            .unwrap_or_else(|| (String::new(), None));
+
+        if !clean_subject.is_empty() {
+            email.subject = Some(clean_subject);
+        }
+
+        let header_theme = email
+            .custom_headers
+            .iter()
+            .find(|(k, _)| k.eq_ignore_ascii_case("x-papeli-theme"))
+            .map(|(_, v)| v.trim().to_string());
+
+        let chosen_theme = if let Some(t) = subject_theme {
+            t
+        } else if let Some(t) = header_theme {
+            t
+        } else if let Some(t) = &resolved.template_html {
+            t.clone()
+        } else {
+            self.template_selector.select_theme(
+                None,
+                resolved.template_pool.as_deref(),
+                &resolved.template_strategy,
+            )
+        };
+
+        let templates_dir = {
+            let cfg = self.config.read().ok();
+            cfg.map(|c| c.server.templates_dir.clone())
+        };
+        let mjml_template = self
+            .template_engine
+            .resolve_mjml_template(&chosen_theme, templates_dir.as_deref());
+
         // 1. Sanitizar e limpar o corpo do e-mail do usuário
         let clean_text = email
             .body_text
             .as_deref()
             .map(clean_plain_text)
             .unwrap_or_default();
-        let clean_html = email
-            .body_html
-            .as_deref()
-            .map(sanitize_html)
-            .unwrap_or_default();
+
+        // Se o e-mail original não tinha HTML, converte o texto simples em parágrafos HTML
+        let clean_html = if let Some(raw_html) = email.body_html.as_deref() {
+            sanitize_html(raw_html)
+        } else {
+            plain_text_to_html(&clean_text, &chosen_theme)
+        };
 
         // 2. Assinatura curta para substituir instâncias antigas no histórico
         let short_html = default_short_html(
@@ -115,6 +167,7 @@ impl EmailProcessor {
 
         // 4. Renderizar via TemplateEngine
         let ctx = context! {
+            header_title => resolved.header_title,
             subject => email.subject.as_deref().unwrap_or(""),
             logo_url => resolved.logo_url.as_deref().unwrap_or(""),
             company_name => resolved.company_name,
@@ -126,14 +179,20 @@ impl EmailProcessor {
 
         let final_html = self
             .template_engine
-            .render_html(DEFAULT_MJML_TEMPLATE, &ctx)
+            .render_html(&mjml_template, &ctx)
             .ok()?;
         let final_text = self
             .template_engine
             .render_text(DEFAULT_TEXT_TEMPLATE, &ctx)
             .ok()?;
 
-        // 5. Reconstruir a árvore MIME intacta
+        // 5. Adicionar assets inline do tema (cantoneiras pré-rotacionadas e gradiente vertical)
+        let mut email = email;
+        for att in crate::templates::build_theme_inline_attachments(&chosen_theme) {
+            email.attachments.push(att);
+        }
+
+        // 6. Reconstruir a árvore MIME intacta
         email.reconstruct(&final_text, &final_html).ok()
     }
 }
@@ -235,6 +294,9 @@ pub fn handle_milter_stream<S: Read + Write>(mut stream: S, processor: &EmailPro
                     }
                     if let Some(mime_ver) = extract_header_value(header_part, "MIME-Version") {
                         send_change_header(&mut stream, 1, "MIME-Version", &mime_ver);
+                    }
+                    if let Some(subj) = extract_header_value(header_part, "Subject") {
+                        send_change_header(&mut stream, 1, "Subject", &subj);
                     }
                     // Remove Content-Transfer-Encoding no nível superior, pois multipart/* não pode ter CTE base64/qp raiz
                     send_change_header(&mut stream, 1, "Content-Transfer-Encoding", "");

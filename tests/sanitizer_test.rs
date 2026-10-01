@@ -93,3 +93,37 @@ fn test_sanitizer_security_strips_scripts_and_events() {
     assert!(cleaned.contains("<p>Olá amigo,</p>"));
     assert!(cleaned.contains("Clique aqui"));
 }
+
+#[test]
+fn test_plain_text_to_html_markdown_parsing() {
+    let md = r#"
+## Relatório de Teste
+
+Olá, este é um e-mail escrito em **Markdown** via `aerc`.
+
+> "A simplicidade é o último grau de sofisticação."
+
+### Metas Atingidas:
+
+| Módulo | Status | Prioridade |
+| :--- | :---: | ---: |
+| Milter Postfix | Concluído | Alta |
+| Markdown Parser | Concluído | Alta |
+| Design Anos 80 | Pronto | Máxima |
+
+- [x] Teste de compatibilidade
+- [x] Suporte ao FairEmail e Gmail
+"#;
+
+    let html = papeli::sanitizer::plain_text_to_html(md, "anos80_rosinha_frufru");
+
+    assert!(html.contains("<h2"), "Deve converter ## em <h2>");
+    assert!(html.contains("🎀"), "Deve injetar emoji do tema nos títulos");
+    assert!(html.contains("<strong>Markdown</strong>"), "Deve converter ** em <strong>");
+    assert!(html.contains("<blockquote"), "Deve converter > em <blockquote>");
+    assert!(html.contains("<table"), "Deve converter tabela Markdown em <table>");
+    assert!(html.contains("<th style=\"background-color: rgba(244, 114, 182, 0.18)"), "Cabeçalho da tabela deve ter a cor do tema");
+    assert!(html.contains("border: 1px solid #fbcfe8"), "Bordas da tabela devem ser na cor suave do tema");
+    assert!(html.contains("Milter Postfix"), "Deve conter conteúdo da tabela");
+}
+

@@ -10,9 +10,14 @@ pub struct SignatureConfig<'a> {
 }
 
 pub fn default_short_html(sender_name: &str, company_name: &str) -> String {
+    let label = if company_name.is_empty() || company_name.eq_ignore_ascii_case("lumen") {
+        sender_name.to_string()
+    } else {
+        format!("{} ({})", sender_name, company_name)
+    };
     format!(
-        "<div class=\"papeli-sig-short\" data-papeli=\"signature\"><p style=\"color: #666; font-size: 11px; margin: 4px 0;\">— {} ({})</p></div>",
-        sender_name, company_name
+        "<div class=\"papeli-sig-short\" data-papeli=\"signature\" style=\"font-family: Georgia, 'Times New Roman', Palatino, serif;\"><p style=\"color: #64748b; font-size: 12px; margin: 4px 0; font-family: Georgia, 'Times New Roman', Palatino, serif;\">— {}</p></div>",
+        label
     )
 }
 

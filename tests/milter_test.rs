@@ -105,7 +105,7 @@ fn test_milter_stream_wire_protocol() {
     let mut received_replbody = false;
     let mut received_continue = false;
 
-    for _ in 0..5 {
+    for _ in 0..10 {
         let frame = read_frame(&mut client);
         if frame[0] == SMFIR_REPLBODY {
             received_replbody = true;

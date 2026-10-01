@@ -48,8 +48,11 @@ impl Default for ServerConfig {
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ProfileConfig {
+    pub header_title: Option<String>,
     pub template_html: Option<String>,
     pub template_txt: Option<String>,
+    pub template_pool: Option<Vec<String>>,
+    pub template_strategy: Option<String>,
     pub company_name: Option<String>,
     pub logo_url: Option<String>,
     pub disclaimer: Option<String>,
@@ -75,10 +78,13 @@ pub struct Config {
 #[derive(Debug, Clone)]
 pub struct ResolvedConfig {
     pub is_managed: bool,
+    pub header_title: String,
     pub company_name: String,
     pub logo_url: Option<String>,
     pub template_html: Option<String>,
     pub template_txt: Option<String>,
+    pub template_pool: Option<Vec<String>>,
+    pub template_strategy: String,
     pub disclaimer: Option<String>,
     pub sender_name: Option<String>,
     pub sender_role: Option<String>,
@@ -102,14 +108,26 @@ impl Config {
     }
 
     pub fn resolve(&self, sender_email: Option<&str>) -> ResolvedConfig {
+        let mut header_title = self.default.header_title.clone().unwrap_or_else(|| {
+            self.default
+                .sender_name
+                .clone()
+                .unwrap_or_else(|| "Lumen Pink".to_string())
+        });
         let mut company_name = self
             .default
             .company_name
             .clone()
-            .unwrap_or_else(|| "Papéli".to_string());
+            .unwrap_or_default();
         let mut logo_url = self.default.logo_url.clone();
         let mut template_html = self.default.template_html.clone();
         let mut template_txt = self.default.template_txt.clone();
+        let mut template_pool = self.default.template_pool.clone();
+        let mut template_strategy = self
+            .default
+            .template_strategy
+            .clone()
+            .unwrap_or_else(|| "round-robin".to_string());
         let mut disclaimer = self.default.disclaimer.clone();
         let mut sender_name = self.default.sender_name.clone();
         let mut sender_role = self.default.sender_role.clone();
@@ -125,6 +143,11 @@ impl Config {
             // 1. Cascata: Aplicar regras do Domínio
             if let Some(dom_cfg) = self.domains.get(domain) {
                 is_managed = true;
+                if let Some(v) = &dom_cfg.header_title {
+                    header_title = v.clone();
+                } else if let Some(sn) = &dom_cfg.sender_name {
+                    header_title = sn.clone();
+                }
                 if let Some(v) = &dom_cfg.company_name {
                     company_name = v.clone();
                 }
@@ -136,6 +159,12 @@ impl Config {
                 }
                 if dom_cfg.template_txt.is_some() {
                     template_txt = dom_cfg.template_txt.clone();
+                }
+                if dom_cfg.template_pool.is_some() {
+                    template_pool = dom_cfg.template_pool.clone();
+                }
+                if let Some(strat) = &dom_cfg.template_strategy {
+                    template_strategy = strat.clone();
                 }
                 if dom_cfg.disclaimer.is_some() {
                     disclaimer = dom_cfg.disclaimer.clone();
@@ -157,6 +186,11 @@ impl Config {
             // 2. Cascata: Aplicar regras específicas do Remetente (sobrescreve domínio)
             if let Some(snd_cfg) = self.senders.get(&email_clean) {
                 is_managed = true;
+                if let Some(v) = &snd_cfg.header_title {
+                    header_title = v.clone();
+                } else if let Some(sn) = &snd_cfg.sender_name {
+                    header_title = sn.clone();
+                }
                 if let Some(v) = &snd_cfg.company_name {
                     company_name = v.clone();
                 }
@@ -168,6 +202,12 @@ impl Config {
                 }
                 if snd_cfg.template_txt.is_some() {
                     template_txt = snd_cfg.template_txt.clone();
+                }
+                if snd_cfg.template_pool.is_some() {
+                    template_pool = snd_cfg.template_pool.clone();
+                }
+                if let Some(strat) = &snd_cfg.template_strategy {
+                    template_strategy = strat.clone();
                 }
                 if snd_cfg.disclaimer.is_some() {
                     disclaimer = snd_cfg.disclaimer.clone();
@@ -189,10 +229,13 @@ impl Config {
 
         ResolvedConfig {
             is_managed,
+            header_title,
             company_name,
             logo_url,
             template_html,
             template_txt,
+            template_pool,
+            template_strategy,
             disclaimer,
             sender_name,
             sender_role,
