@@ -48,6 +48,39 @@
       opacity: 0.5;
     }
   </style>
+
+  <style>
+    .site-footer {
+      border-top: 1px solid var(--border, #333);
+      padding: 2rem 1rem;
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+    .footer-canonical {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      align-items: center;
+      justify-content: center;
+    }
+    .footer-line-identity {
+      font-weight: 500;
+    }
+    .footer-line-metadata {
+      color: var(--text-muted, #888);
+      font-size: 0.8rem;
+    }
+    .site-footer a {
+      color: var(--accent, #ff79c6);
+      text-decoration: none;
+    }
+    .site-footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+
 </head>
 <body>
 
@@ -348,20 +381,12 @@ sudo postfix reload</code></pre>
   <!-- ─── Footer ─── -->
   <div class="lace-top" style="background-color: #880e4f;"></div>
   <footer class="site-footer">
-    <div class="footer-inner">
-      <div class="footer-logo">Papéli</div>
-      <div class="footer-tagline">Carta com carinho, código com rigor 💌</div>
-      <nav class="footer-links" aria-label="Links do rodapé">
-        <a href="index.html">Início</a>
-        <a href="docs.html">Documentação</a>
-        <a href="downloads.html">Instalação</a>
-        <a href="https://codeberg.org/lumenpink/papeli" target="_blank" rel="noopener">Codeberg</a>
-        <a href="https://codeberg.org/lumenpink/papeli/issues" target="_blank" rel="noopener">Issues</a>
-        <a href="https://codeberg.org/lumenpink/papeli/raw/branch/main/LICENSE-MIT" target="_blank" rel="noopener">Licença MIT</a>
-      </nav>
-      <div class="footer-copy">
-        🌸 Feito com amor, Rust e muita resistência ao HTML feio do Outlook · MIT License<br>
-        lumenpink &amp; contribuidores · 2026
+    <div class="footer-canonical">
+      <div class="footer-line footer-line-identity">
+        Orgulhosamente produzido por uma <a href="https://travesti.2lp.in/pt/" target="_blank" rel="noopener">travesti latina</a> 🏳️‍⚧️ :)
+      </div>
+      <div class="footer-line footer-line-metadata">
+        papeli v0.1.0-dev.25+20260929.d64459e • por <a href="https://lumen.pink" target="_blank" rel="noopener">Lumen Pink</a> • Brasil 🇧🇷 • <a href="LICENSE" target="_blank" rel="noopener">GPL-3.0-or-later</a>
       </div>
     </div>
   </footer>
