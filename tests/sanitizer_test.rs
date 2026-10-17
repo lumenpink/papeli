@@ -21,8 +21,14 @@ fn test_sanitizer_outlook_mso_strips_styles_and_meta() {
 
     assert!(!cleaned.contains("<head>"), "Não deve conter <head>");
     assert!(!cleaned.contains("<style>"), "Não deve conter <style>");
-    assert!(!cleaned.contains("xmlns:v"), "Não deve conter namespaces VML");
-    assert!(!cleaned.contains("<!--[if"), "Não deve conter condicionais MSO");
+    assert!(
+        !cleaned.contains("xmlns:v"),
+        "Não deve conter namespaces VML"
+    );
+    assert!(
+        !cleaned.contains("<!--[if"),
+        "Não deve conter condicionais MSO"
+    );
     assert!(!cleaned.contains("<o:p>"), "Não deve conter tags <o:p>");
 
     // Conteúdo original preservado
@@ -56,8 +62,14 @@ fn test_sanitizer_outlook_legacy_stationery_flattened() {
 
     let cleaned = sanitize_html(&email.body_html.unwrap());
 
-    assert!(!cleaned.contains("marble_texture.gif"), "Texturas antigas devem ser expurgadas");
-    assert!(!cleaned.contains("Comic Sans"), "CSS intrusivo deve ser removido");
+    assert!(
+        !cleaned.contains("marble_texture.gif"),
+        "Texturas antigas devem ser expurgadas"
+    );
+    assert!(
+        !cleaned.contains("Comic Sans"),
+        "CSS intrusivo deve ser removido"
+    );
     assert!(!cleaned.contains("<body"), "Não deve conter tag body");
 
     assert!(cleaned.contains("COMUNICADO INTERNO"));
@@ -118,12 +130,32 @@ Olá, este é um e-mail escrito em **Markdown** via `aerc`.
     let html = papeli::sanitizer::plain_text_to_html(md, "anos80_rosinha_frufru");
 
     assert!(html.contains("<h2"), "Deve converter ## em <h2>");
-    assert!(html.contains("🎀"), "Deve injetar emoji do tema nos títulos");
-    assert!(html.contains("<strong>Markdown</strong>"), "Deve converter ** em <strong>");
-    assert!(html.contains("<blockquote"), "Deve converter > em <blockquote>");
-    assert!(html.contains("<table"), "Deve converter tabela Markdown em <table>");
-    assert!(html.contains("<th style=\"background-color: rgba(244, 114, 182, 0.18)"), "Cabeçalho da tabela deve ter a cor do tema");
-    assert!(html.contains("border: 1px solid #fbcfe8"), "Bordas da tabela devem ser na cor suave do tema");
-    assert!(html.contains("Milter Postfix"), "Deve conter conteúdo da tabela");
+    assert!(
+        html.contains("🎀"),
+        "Deve injetar emoji do tema nos títulos"
+    );
+    assert!(
+        html.contains("<strong>Markdown</strong>"),
+        "Deve converter ** em <strong>"
+    );
+    assert!(
+        html.contains("<blockquote"),
+        "Deve converter > em <blockquote>"
+    );
+    assert!(
+        html.contains("<table"),
+        "Deve converter tabela Markdown em <table>"
+    );
+    assert!(
+        html.contains("<th style=\"background-color: rgba(244, 114, 182, 0.18)"),
+        "Cabeçalho da tabela deve ter a cor do tema"
+    );
+    assert!(
+        html.contains("border: 1px solid #fbcfe8"),
+        "Bordas da tabela devem ser na cor suave do tema"
+    );
+    assert!(
+        html.contains("Milter Postfix"),
+        "Deve conter conteúdo da tabela"
+    );
 }
-

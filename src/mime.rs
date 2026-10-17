@@ -1,5 +1,5 @@
-use mail_builder::headers::raw::Raw;
 use mail_builder::MessageBuilder;
+use mail_builder::headers::raw::Raw;
 use mail_parser::{MessageParser, MimeHeaders};
 use std::fmt;
 

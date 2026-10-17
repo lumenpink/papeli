@@ -114,26 +114,18 @@ impl Config {
                 .clone()
                 .unwrap_or_else(|| "Lumen Pink".to_string())
         });
-        let mut company_name = self
-            .default
-            .company_name
-            .clone()
-            .unwrap_or_default();
+        let mut company_name = self.default.company_name.clone().unwrap_or_default();
         let mut logo_url = self.default.logo_url.clone();
         let mut template_html = self.default.template_html.clone();
         let mut template_txt = self.default.template_txt.clone();
         let mut template_pool = self.default.template_pool.clone();
-        let mut template_strategy = self
-            .default
-            .template_strategy
-            .clone()
-            .unwrap_or_else(|| {
-                if template_html.is_some() {
-                    "static".to_string()
-                } else {
-                    "round-robin".to_string()
-                }
-            });
+        let mut template_strategy = self.default.template_strategy.clone().unwrap_or_else(|| {
+            if template_html.is_some() {
+                "static".to_string()
+            } else {
+                "round-robin".to_string()
+            }
+        });
         if self.default.template_strategy.as_deref() == Some("random")
             || self.default.template_strategy.as_deref() == Some("round-robin")
         {
@@ -297,7 +289,10 @@ impl ConfigManager {
 
     pub fn reload(&self) -> Result<(), ConfigError> {
         let new_cfg = Config::from_file(&self.path)?;
-        let mut lock = self.config.write().map_err(|e| ConfigError::IoError(e.to_string()))?;
+        let mut lock = self
+            .config
+            .write()
+            .map_err(|e| ConfigError::IoError(e.to_string()))?;
         *lock = new_cfg;
         Ok(())
     }

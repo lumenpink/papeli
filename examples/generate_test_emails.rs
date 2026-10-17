@@ -274,7 +274,9 @@ fn main() {
     println!("========================================================");
     println!("Diretório de saída: {}", out_dir.display());
     if send_both {
-        println!("Destinatários: Gmail (lumenfreitas@gmail.com) E FairEmail (hi@lumen.pink via obizero SMTP)");
+        println!(
+            "Destinatários: Gmail (lumenfreitas@gmail.com) E FairEmail (hi@lumen.pink via obizero SMTP)"
+        );
     } else if send_obizero {
         println!("Destinatário: FairEmail (hi@lumen.pink via obizero SMTP 127.0.0.1:25)");
     } else {
@@ -318,12 +320,7 @@ fn main() {
                 markdown_aerc_content(),
             )
         } else {
-            build_raw_email(
-                sender,
-                &recipient,
-                &subject_with_tag,
-                rich_email_content(),
-            )
+            build_raw_email(sender, &recipient, &subject_with_tag, rich_email_content())
         };
 
         let processed = processor
@@ -339,7 +336,12 @@ fn main() {
         fs::write(&eml_file, &processed).unwrap();
         fs::write(&html_file, &html_content).unwrap();
 
-        println!("✔ [{:02}/10] Tema: {:<25} -> previews/{}.html", idx + 1, theme_name, theme_name);
+        println!(
+            "✔ [{:02}/10] Tema: {:<25} -> previews/{}.html",
+            idx + 1,
+            theme_name,
+            theme_name
+        );
 
         if send_both {
             // 1. Enviar para o Gmail via msmtp
@@ -402,19 +404,16 @@ fn main() {
     // 2. Gerar caso de Resposta (Reply com citação e assinatura colapsada)
     if target_theme.is_none() {
         let reply_subj = "Re: Planejamento dos Papéis [tema:frufru]";
-        let raw = build_raw_email(
-            sender,
-            &recipient,
-            reply_subj,
-            reply_email_content(),
-        );
+        let raw = build_raw_email(sender, &recipient, reply_subj, reply_email_content());
         let processed = processor.process_email(&raw).unwrap();
         let parsed = ParsedEmail::parse(&processed).unwrap();
         let html_content = parsed.body_html.unwrap();
 
         fs::write(out_dir.join("caso_resposta_thread.eml"), &processed).unwrap();
         fs::write(out_dir.join("caso_resposta_thread.html"), &html_content).unwrap();
-        println!("✔ Caso Especial: Resposta de E-mail (Thread) -> previews/caso_resposta_thread.html");
+        println!(
+            "✔ Caso Especial: Resposta de E-mail (Thread) -> previews/caso_resposta_thread.html"
+        );
 
         if do_send {
             send_via_msmtp(&recipient, &processed);
@@ -423,12 +422,7 @@ fn main() {
 
         // 3. Gerar caso de Encaminhamento (Forward)
         let fwd_subj = "Fwd: Catálogo de Acabamentos e Lotes [tema:moranguinho]";
-        let raw = build_raw_email(
-            sender,
-            &recipient,
-            fwd_subj,
-            forward_email_content(),
-        );
+        let raw = build_raw_email(sender, &recipient, fwd_subj, forward_email_content());
         let processed = processor.process_email(&raw).unwrap();
         let parsed = ParsedEmail::parse(&processed).unwrap();
         let html_content = parsed.body_html.unwrap();
@@ -506,15 +500,14 @@ fn send_via_msmtp(recipient: &str, raw_eml: &[u8]) {
         .expect("Falha ao invocar comando msmtp");
 
     if let Some(mut stdin) = child.stdin.take() {
-        stdin.write_all(raw_eml).expect("Falha ao escrever no stdin do msmtp");
+        stdin
+            .write_all(raw_eml)
+            .expect("Falha ao escrever no stdin do msmtp");
     }
 
     let output = child.wait_with_output().expect("Falha ao aguardar msmtp");
     if !output.status.success() {
-        eprintln!(
-            "Erro no msmtp: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
+        eprintln!("Erro no msmtp: {}", String::from_utf8_lossy(&output.stderr));
     }
 }
 
@@ -539,7 +532,10 @@ fn send_via_obizero_smtp(recipient: &str, raw_eml: &[u8]) {
     let mut stream = match TcpStream::connect("127.0.0.1:25") {
         Ok(s) => s,
         Err(e) => {
-            eprintln!("Falha ao conectar no SMTP local obizero (127.0.0.1:25): {}", e);
+            eprintln!(
+                "Falha ao conectar no SMTP local obizero (127.0.0.1:25): {}",
+                e
+            );
             return;
         }
     };
@@ -572,5 +568,8 @@ fn send_via_obizero_smtp(recipient: &str, raw_eml: &[u8]) {
         return;
     }
     let _ = smtp_write_and_expect(&mut stream, "QUIT\r\n");
-    println!("  ↳ [Obizero SMTP] E-mail entregue com sucesso via 127.0.0.1:25 para {}!", recipient);
+    println!(
+        "  ↳ [Obizero SMTP] E-mail entregue com sucesso via 127.0.0.1:25 para {}!",
+        recipient
+    );
 }

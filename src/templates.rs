@@ -74,8 +74,10 @@ pub const TEMPLATE_ANOS80_LAVANDA: &str = include_str!("../templates/anos80_lava
 pub const TEMPLATE_ANOS80_NUVEM: &str = include_str!("../templates/anos80_nuvem_algodao.mjml");
 pub const TEMPLATE_ANOS80_MENTA: &str = include_str!("../templates/anos80_menta_fresca.mjml");
 pub const TEMPLATE_ANOS80_CADERNO: &str = include_str!("../templates/anos80_caderno_pautado.mjml");
-pub const TEMPLATE_ANOS80_ROMANTICA: &str = include_str!("../templates/anos80_carta_romantica.mjml");
-pub const TEMPLATE_ANOS80_CONSTELACAO: &str = include_str!("../templates/anos80_constelacao_pop.mjml");
+pub const TEMPLATE_ANOS80_ROMANTICA: &str =
+    include_str!("../templates/anos80_carta_romantica.mjml");
+pub const TEMPLATE_ANOS80_CONSTELACAO: &str =
+    include_str!("../templates/anos80_constelacao_pop.mjml");
 pub const TEMPLATE_ANOS80_JARDIM: &str = include_str!("../templates/anos80_jardim_encantado.mjml");
 pub const TEMPLATE_ANOS80_ARCOIRIS: &str = include_str!("../templates/anos80_arcoiris_pastel.mjml");
 
@@ -251,7 +253,11 @@ pub fn extract_theme_tag(subject: &str) -> (String, Option<String>) {
             let potential_tag = word.trim_start_matches('#');
             let canonical = canonical_theme_name(potential_tag);
             if canonical != "default" {
-                let clean = subject.replace(word, "").split_whitespace().collect::<Vec<_>>().join(" ");
+                let clean = subject
+                    .replace(word, "")
+                    .split_whitespace()
+                    .collect::<Vec<_>>()
+                    .join(" ");
                 return (clean, Some(canonical.to_string()));
             }
         }
@@ -277,7 +283,12 @@ impl TemplateSelector {
         }
     }
 
-    pub fn select_theme(&self, requested: Option<&str>, pool: Option<&[String]>, strategy: &str) -> String {
+    pub fn select_theme(
+        &self,
+        requested: Option<&str>,
+        pool: Option<&[String]>,
+        strategy: &str,
+    ) -> String {
         if let Some(req) = requested {
             let canon = canonical_theme_name(req);
             if canon != "default" {
@@ -352,7 +363,11 @@ impl TemplateEngine {
         DEFAULT_MJML_TEMPLATE.to_string()
     }
 
-    pub fn render_html(&self, mjml_template: &str, context: &Value) -> Result<String, TemplateError> {
+    pub fn render_html(
+        &self,
+        mjml_template: &str,
+        context: &Value,
+    ) -> Result<String, TemplateError> {
         let rendered_mjml = self
             .env
             .render_str(mjml_template, context)
@@ -368,7 +383,11 @@ impl TemplateEngine {
             .map_err(|e| TemplateError::MjmlError(format!("Render error: {:?}", e)))
     }
 
-    pub fn render_text(&self, text_template: &str, context: &Value) -> Result<String, TemplateError> {
+    pub fn render_text(
+        &self,
+        text_template: &str,
+        context: &Value,
+    ) -> Result<String, TemplateError> {
         self.env
             .render_str(text_template, context)
             .map_err(|e| TemplateError::JinjaError(e.to_string()))
@@ -404,7 +423,10 @@ pub fn build_long_signature_html(
             "".into()
         },
         if !company.is_empty() {
-            format!("<tr><td style=\"color: #718096; font-family: Georgia, 'Times New Roman', Palatino, serif;\">{}</td></tr>", company)
+            format!(
+                "<tr><td style=\"color: #718096; font-family: Georgia, 'Times New Roman', Palatino, serif;\">{}</td></tr>",
+                company
+            )
         } else {
             "".into()
         },

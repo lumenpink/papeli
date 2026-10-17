@@ -45,7 +45,10 @@ fn test_collapse_signatures_html_in_nested_thread() {
         "O HTML compactado deve ser menor em bytes que o original"
     );
     let bytes_saved = original_html.len() - collapsed_html.len();
-    assert!(bytes_saved > 500, "Economia deve ser expressiva (> 500 bytes)");
+    assert!(
+        bytes_saved > 500,
+        "Economia deve ser expressiva (> 500 bytes)"
+    );
 }
 
 #[test]
@@ -54,18 +57,32 @@ fn test_collapse_signatures_text_in_nested_thread() {
     let email = ParsedEmail::parse(&raw).unwrap();
     let original_text = email.body_text.expect("Deve possuir texto");
 
-    assert_eq!(original_text.matches("<!--papeli:sig:start:long-->").count(), 3);
-    assert_eq!(original_text.matches("<!--papeli:sig:start:short-->").count(), 0);
+    assert_eq!(
+        original_text
+            .matches("<!--papeli:sig:start:long-->")
+            .count(),
+        3
+    );
+    assert_eq!(
+        original_text
+            .matches("<!--papeli:sig:start:short-->")
+            .count(),
+        0
+    );
 
     let short_sig = default_short_text("Carlos Silva", "ACME Corp");
     let collapsed_text = collapse_historical_signatures_text(&original_text, &short_sig);
 
     assert_eq!(
-        collapsed_text.matches("<!--papeli:sig:start:long-->").count(),
+        collapsed_text
+            .matches("<!--papeli:sig:start:long-->")
+            .count(),
         0
     );
     assert_eq!(
-        collapsed_text.matches("<!--papeli:sig:start:short-->").count(),
+        collapsed_text
+            .matches("<!--papeli:sig:start:short-->")
+            .count(),
         3
     );
 

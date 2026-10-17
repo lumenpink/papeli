@@ -36,7 +36,11 @@ fn test_mime_reconstruction_preserves_pdf_attachment_byte_for_byte() {
     // Parse da mensagem reconstruída
     let reconstructed = ParsedEmail::parse(&reconstructed_raw).expect("Falha no re-parse");
 
-    assert_eq!(reconstructed.attachments.len(), 1, "Deve manter exatamente 1 anexo");
+    assert_eq!(
+        reconstructed.attachments.len(),
+        1,
+        "Deve manter exatamente 1 anexo"
+    );
     let reconstructed_pdf = &reconstructed.attachments[0];
     let reconstructed_hash = sha256_digest(&reconstructed_pdf.data);
 
@@ -61,7 +65,10 @@ fn test_mime_reconstruction_preserves_inline_cid_images() {
     assert_eq!(original.attachments.len(), 1);
     let orig_inline = &original.attachments[0];
     assert!(orig_inline.is_inline);
-    assert_eq!(orig_inline.content_id.as_deref(), Some("banner_topo@papeli.local"));
+    assert_eq!(
+        orig_inline.content_id.as_deref(),
+        Some("banner_topo@papeli.local")
+    );
     let orig_hash = sha256_digest(&orig_inline.data);
 
     let new_text = "Novo texto do workshop";
@@ -98,7 +105,10 @@ fn test_mime_reconstruction_promotes_plain_text_to_alternative() {
 
     assert_eq!(reconstructed.body_text.as_deref(), Some(new_text));
     assert_eq!(reconstructed.body_html.as_deref(), Some(new_html));
-    assert!(!reconstructed.is_plain_only, "Agora deve possuir partes alternativa texto e html");
+    assert!(
+        !reconstructed.is_plain_only,
+        "Agora deve possuir partes alternativa texto e html"
+    );
 }
 
 #[test]
@@ -107,7 +117,10 @@ fn test_mime_reconstruction_preserves_headers_and_threading() {
     let original = ParsedEmail::parse(&raw).expect("Falha no parse do Gmail thread");
 
     assert_eq!(original.sender_email.as_deref(), Some("anapaula@acme.com"));
-    assert_eq!(original.subject.as_deref(), Some("Re: Atualização do Projeto Papéli"));
+    assert_eq!(
+        original.subject.as_deref(),
+        Some("Re: Atualização do Projeto Papéli")
+    );
     assert!(original.in_reply_to.is_some());
     assert!(!original.references.is_empty());
 
@@ -153,8 +166,14 @@ fn test_mime_reconstruction_with_multiple_inline_assets() {
     let reconstructed = ParsedEmail::parse(&reconstructed_raw).unwrap();
 
     assert_eq!(reconstructed.attachments.len(), 2);
-    assert_eq!(reconstructed.attachments[0].content_id.as_deref(), Some("grad.png"));
-    assert_eq!(reconstructed.attachments[1].content_id.as_deref(), Some("corner_tl.png"));
+    assert_eq!(
+        reconstructed.attachments[0].content_id.as_deref(),
+        Some("grad.png")
+    );
+    assert_eq!(
+        reconstructed.attachments[1].content_id.as_deref(),
+        Some("corner_tl.png")
+    );
 }
 
 #[test]
@@ -165,5 +184,3 @@ fn test_mime_without_content_type() {
     assert!(parsed.body_html.is_none());
     assert_eq!(parsed.body_text.as_deref(), Some("# Heading\nLine 1\n"));
 }
-
-

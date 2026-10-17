@@ -1,7 +1,7 @@
 use papeli::config::Config;
 use papeli::milter::{
-    handle_milter_stream, EmailProcessor, SMFIC_BODY, SMFIC_BODYEOB, SMFIC_OPTNEG, SMFIC_QUIT,
-    SMFIR_REPLBODY, SMFIS_CONTINUE,
+    EmailProcessor, SMFIC_BODY, SMFIC_BODYEOB, SMFIC_OPTNEG, SMFIC_QUIT, SMFIR_REPLBODY,
+    SMFIS_CONTINUE, handle_milter_stream,
 };
 use std::fs;
 use std::io::{Read, Write};
@@ -45,7 +45,10 @@ fn test_email_processor_bypasses_unmanaged_senders() {
 
     let raw = b"From: stranger@external.com\r\nTo: user@acme.com\r\nSubject: Hi\r\n\r\nHello";
     let res = processor.process_email(raw);
-    assert!(res.is_none(), "E-mails externos não gerenciados devem sofrer bypass");
+    assert!(
+        res.is_none(),
+        "E-mails externos não gerenciados devem sofrer bypass"
+    );
 }
 
 #[test]
@@ -54,9 +57,12 @@ fn test_email_processor_wraps_managed_sender() {
     let processor = EmailProcessor::new(cfg);
 
     let raw = load_fixture("gmail_web_thread.eml");
-    let res = processor.process_email(&raw).expect("Deve processar remetente gerenciado");
+    let res = processor
+        .process_email(&raw)
+        .expect("Deve processar remetente gerenciado");
 
-    let parsed_res = papeli::mime::ParsedEmail::parse(&res).expect("Falha ao parsear e-mail processado");
+    let parsed_res =
+        papeli::mime::ParsedEmail::parse(&res).expect("Falha ao parsear e-mail processado");
     let html = parsed_res.body_html.expect("Deve conter corpo HTML");
     let text = parsed_res.body_text.expect("Deve conter corpo de texto");
 
@@ -86,7 +92,10 @@ fn test_milter_stream_wire_protocol() {
     let mut client = TcpStream::connect(addr).unwrap();
 
     // 1. Enviar SMFIC_OPTNEG
-    send_frame(&mut client, &[SMFIC_OPTNEG, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0]);
+    send_frame(
+        &mut client,
+        &[SMFIC_OPTNEG, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0],
+    );
     let optneg_reply = read_frame(&mut client);
     assert_eq!(optneg_reply[0], SMFIC_OPTNEG);
 
@@ -116,8 +125,14 @@ fn test_milter_stream_wire_protocol() {
         }
     }
 
-    assert!(received_replbody, "Milter deve enviar resposta SMFIR_REPLBODY com novo corpo");
-    assert!(received_continue, "Milter deve finalizar com SMFIS_CONTINUE");
+    assert!(
+        received_replbody,
+        "Milter deve enviar resposta SMFIR_REPLBODY com novo corpo"
+    );
+    assert!(
+        received_continue,
+        "Milter deve finalizar com SMFIS_CONTINUE"
+    );
 
     // 4. Enviar SMFIC_QUIT
     send_frame(&mut client, &[SMFIC_QUIT]);

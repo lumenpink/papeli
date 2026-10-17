@@ -43,7 +43,7 @@ pub fn clean_plain_text(text: &str) -> String {
     lines.join("\n").trim().to_string()
 }
 
-use pulldown_cmark::{html, Options, Parser};
+use pulldown_cmark::{Options, Parser, html};
 
 #[derive(Debug, Clone)]
 pub struct ThemePalette {
@@ -188,10 +188,7 @@ fn style_markdown_html(raw_html: &str, palette: &ThemePalette) -> String {
         "background-color: {}; color: {}; font-weight: bold; padding: 10px 8px; border: 1px solid {};",
         palette.header_bg, palette.primary, palette.border_soft
     );
-    let td_style = format!(
-        "padding: 8px; border: 1px solid {};",
-        palette.border_soft
-    );
+    let td_style = format!("padding: 8px; border: 1px solid {};", palette.border_soft);
     let bq_tag = format!(
         "<blockquote style=\"margin: 14px 0; padding: 10px 16px; border-left: 3px solid {}; background: {}; color: #4b5563; font-style: italic;\">",
         palette.accent, palette.header_bg
@@ -237,7 +234,6 @@ fn style_markdown_html(raw_html: &str, palette: &ThemePalette) -> String {
         .replace("<hr>", &hr_tag)
 }
 
-
 pub fn sanitize_html(raw_html: &str) -> String {
     // 1. Se contiver tag <body>, extrair apenas o conteúdo interno de <body>
     let document = Html::parse_document(raw_html);
@@ -252,9 +248,40 @@ pub fn sanitize_html(raw_html: &str) -> String {
     // 2. Configurar o sanitizador estrito com Ammonia
     let mut allowed_tags = HashSet::new();
     for tag in &[
-        "p", "br", "b", "strong", "i", "em", "u", "s", "strike", "a", "ul", "ol", "li",
-        "blockquote", "span", "div", "table", "thead", "tbody", "tr", "th", "td", "img", "h1",
-        "h2", "h3", "h4", "h5", "h6", "hr", "pre", "code", "sub", "sup",
+        "p",
+        "br",
+        "b",
+        "strong",
+        "i",
+        "em",
+        "u",
+        "s",
+        "strike",
+        "a",
+        "ul",
+        "ol",
+        "li",
+        "blockquote",
+        "span",
+        "div",
+        "table",
+        "thead",
+        "tbody",
+        "tr",
+        "th",
+        "td",
+        "img",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "hr",
+        "pre",
+        "code",
+        "sub",
+        "sup",
     ] {
         allowed_tags.insert(*tag);
     }
@@ -309,7 +336,13 @@ pub fn sanitize_html(raw_html: &str) -> String {
 
     // 3. Remover classes MSO e WordSection legadas do Outlook
     let mut cleaned = cleaned;
-    for mso_class in &["WordSection1", "WordSection2", "MsoNormal", "EmailStyle17", "MsoChpDefault"] {
+    for mso_class in &[
+        "WordSection1",
+        "WordSection2",
+        "MsoNormal",
+        "EmailStyle17",
+        "MsoChpDefault",
+    ] {
         cleaned = cleaned.replace(mso_class, "");
     }
 

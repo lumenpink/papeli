@@ -1,8 +1,8 @@
 use papeli::config::Config;
 use papeli::milter::{
-    handle_milter_stream, EmailProcessor, SMFIC_BODY, SMFIC_BODYEOB, SMFIC_CONNECT, SMFIC_EOH,
-    SMFIC_HEADER, SMFIC_HELO, SMFIC_MAIL, SMFIC_OPTNEG, SMFIC_QUIT, SMFIC_RCPT, SMFIR_CHGHEADER,
-    SMFIR_REPLBODY, SMFIS_CONTINUE,
+    EmailProcessor, SMFIC_BODY, SMFIC_BODYEOB, SMFIC_CONNECT, SMFIC_EOH, SMFIC_HEADER, SMFIC_HELO,
+    SMFIC_MAIL, SMFIC_OPTNEG, SMFIC_QUIT, SMFIC_RCPT, SMFIR_CHGHEADER, SMFIR_REPLBODY,
+    SMFIS_CONTINUE, handle_milter_stream,
 };
 use papeli::mime::ParsedEmail;
 use sha2::{Digest, Sha256};
@@ -77,7 +77,9 @@ fn test_e2e_all_fixtures_pass_through_processor() {
 
     // 2. Inline Images CID: Preservação do Content-ID
     let raw_cid = load_fixture("inline_images_cid.eml");
-    let processed_cid = processor.process_email(&raw_cid).expect("CID deve ser processado");
+    let processed_cid = processor
+        .process_email(&raw_cid)
+        .expect("CID deve ser processado");
     let result_cid = ParsedEmail::parse(&processed_cid).unwrap();
     assert_eq!(result_cid.attachments.len(), 1);
     assert_eq!(
@@ -89,8 +91,18 @@ fn test_e2e_all_fixtures_pass_through_processor() {
     let raw_apple = load_fixture("apple_mail_ios.eml");
     let processed_apple = processor.process_email(&raw_apple).unwrap();
     let result_apple = ParsedEmail::parse(&processed_apple).unwrap();
-    assert!(!result_apple.body_text.unwrap().contains("Enviado do meu iPhone"));
-    assert!(!result_apple.body_html.unwrap().contains("Enviado do meu iPhone"));
+    assert!(
+        !result_apple
+            .body_text
+            .unwrap()
+            .contains("Enviado do meu iPhone")
+    );
+    assert!(
+        !result_apple
+            .body_html
+            .unwrap()
+            .contains("Enviado do meu iPhone")
+    );
 
     // 4. Nested Thread: Compactação de assinaturas históricas
     let raw_thread = load_fixture("nested_thread_long.eml");
@@ -109,7 +121,10 @@ fn test_e2e_all_fixtures_pass_through_processor() {
     assert!(result_text.body_html.is_some());
     assert!(result_text.body_text.is_some());
     assert!(
-        result_text.body_html.unwrap().contains("O gateway de pagamento passará por atualização"),
+        result_text
+            .body_html
+            .unwrap()
+            .contains("O gateway de pagamento passará por atualização"),
         "O texto da mensagem original DEVE constar no HTML gerado!"
     );
 
@@ -149,12 +164,18 @@ fn test_e2e_unix_socket_milter_session() {
     let mut client = UnixStream::connect(&socket_path).unwrap();
 
     // 1. OPTNEG
-    send_frame(&mut client, &[SMFIC_OPTNEG, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0]);
+    send_frame(
+        &mut client,
+        &[SMFIC_OPTNEG, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0],
+    );
     let optneg_reply = read_frame(&mut client);
     assert_eq!(optneg_reply[0], SMFIC_OPTNEG);
 
     // 2. CONNECT / HELO / MAIL / RCPT / HEADER / EOH
-    send_frame(&mut client, &[SMFIC_CONNECT, b'l', b'o', b'c', b'a', b'l', 0]);
+    send_frame(
+        &mut client,
+        &[SMFIC_CONNECT, b'l', b'o', b'c', b'a', b'l', 0],
+    );
     assert_eq!(read_frame(&mut client)[0], SMFIS_CONTINUE);
 
     send_frame(&mut client, &[SMFIC_HELO, b'm', b'a', b'i', b'l', 0]);
@@ -162,14 +183,40 @@ fn test_e2e_unix_socket_milter_session() {
 
     send_frame(
         &mut client,
-        &[SMFIC_MAIL, b'<', b'c', b'a', b'r', b'l', b'o', b's', b'@', b'a', b'c', b'm', b'e', b'.', b'c', b'o', b'm', b'>', 0],
+        &[
+            SMFIC_MAIL, b'<', b'c', b'a', b'r', b'l', b'o', b's', b'@', b'a', b'c', b'm', b'e',
+            b'.', b'c', b'o', b'm', b'>', 0,
+        ],
     );
     assert_eq!(read_frame(&mut client)[0], SMFIS_CONTINUE);
 
-    send_frame(&mut client, &[SMFIC_RCPT, b'<', b'd', b'e', b's', b't', b'@', b'e', b'x', b'.', b'c', b'o', b'm', b'>', 0]);
+    send_frame(
+        &mut client,
+        &[
+            SMFIC_RCPT, b'<', b'd', b'e', b's', b't', b'@', b'e', b'x', b'.', b'c', b'o', b'm',
+            b'>', 0,
+        ],
+    );
     assert_eq!(read_frame(&mut client)[0], SMFIS_CONTINUE);
 
-    send_frame(&mut client, &[SMFIC_HEADER, b'F', b'r', b'o', b'm', 0, b'c', b'a', b'r', b'l', b'o', b's', 0]);
+    send_frame(
+        &mut client,
+        &[
+            SMFIC_HEADER,
+            b'F',
+            b'r',
+            b'o',
+            b'm',
+            0,
+            b'c',
+            b'a',
+            b'r',
+            b'l',
+            b'o',
+            b's',
+            0,
+        ],
+    );
     assert_eq!(read_frame(&mut client)[0], SMFIS_CONTINUE);
 
     send_frame(&mut client, &[SMFIC_EOH]);
@@ -216,8 +263,14 @@ fn test_e2e_unix_socket_milter_session() {
         }
     }
 
-    assert!(got_replbody, "Deve receber frame SMFIR_REPLBODY via UNIX Socket");
-    assert!(got_chgheader, "Deve receber frame SMFIR_CHGHEADER via UNIX Socket");
+    assert!(
+        got_replbody,
+        "Deve receber frame SMFIR_REPLBODY via UNIX Socket"
+    );
+    assert!(
+        got_chgheader,
+        "Deve receber frame SMFIR_CHGHEADER via UNIX Socket"
+    );
 
     // Valida o e-mail resultante como o MTA faz (combinando cabeçalhos editados com novo corpo)
     let mut full_bytes = format!("Content-Type: {}\r\n\r\n", content_type_header).into_bytes();
@@ -243,14 +296,17 @@ fn test_e2e_concurrent_processing_throughput() {
         let raw = Arc::clone(&raw_email);
 
         handles.push(std::thread::spawn(move || {
-            let res = proc.process_email(&raw).expect("Thread deve processar com sucesso");
+            let res = proc
+                .process_email(&raw)
+                .expect("Thread deve processar com sucesso");
             let parsed = ParsedEmail::parse(&res).expect("Parse de saída deve ser válido");
             assert!(parsed.body_html.unwrap().contains("ACME Corporation"));
         }));
     }
 
     for h in handles {
-        h.join().expect("Todas as threads devem concluir com sucesso");
+        h.join()
+            .expect("Todas as threads devem concluir com sucesso");
     }
 }
 

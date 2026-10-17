@@ -1,5 +1,5 @@
 use papeli::config::{Config, ConfigManager};
-use papeli::milter::{run_milter_listener, EmailProcessor};
+use papeli::milter::{EmailProcessor, run_milter_listener};
 use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -27,7 +27,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Carregando configuração de: {}", config_path.display());
         Config::from_file(&config_path)?
     } else {
-        println!("Aviso: {} não encontrado. Usando configuração padrão.", config_path.display());
+        println!(
+            "Aviso: {} não encontrado. Usando configuração padrão.",
+            config_path.display()
+        );
         let mut cfg = Config::default();
         cfg.default.company_name = Some("Papéli".into());
         cfg

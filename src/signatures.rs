@@ -48,7 +48,8 @@ pub fn collapse_historical_signatures_html(html: &str, fallback_short_html: &str
         Err(_) => return html.to_string(),
     };
 
-    let sig_long_selector = match Selector::parse(".papeli-sig-long, div[data-papeli='signature']") {
+    let sig_long_selector = match Selector::parse(".papeli-sig-long, div[data-papeli='signature']")
+    {
         Ok(s) => s,
         Err(_) => return html.to_string(),
     };

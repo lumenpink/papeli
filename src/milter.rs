@@ -6,8 +6,8 @@ use crate::signatures::{
     default_short_text,
 };
 use crate::templates::{
-    build_long_signature_html, build_long_signature_text, extract_theme_tag, TemplateEngine,
-    TemplateSelector, DEFAULT_TEXT_TEMPLATE,
+    DEFAULT_TEXT_TEMPLATE, TemplateEngine, TemplateSelector, build_long_signature_html,
+    build_long_signature_text, extract_theme_tag,
 };
 use minijinja::context;
 use std::io::{Read, Write};
@@ -104,7 +104,9 @@ impl EmailProcessor {
         } else if let Some(t) = header_theme {
             t
         } else if resolved.template_strategy.eq_ignore_ascii_case("random")
-            || resolved.template_strategy.eq_ignore_ascii_case("round-robin")
+            || resolved
+                .template_strategy
+                .eq_ignore_ascii_case("round-robin")
         {
             self.template_selector.select_theme(
                 None,
@@ -289,11 +291,18 @@ pub fn handle_milter_stream<S: Read + Write>(mut stream: S, processor: &EmailPro
                     full
                 };
 
-                eprintln!("[papeli] EOB received. headers_len={}, body_len={}, full_len={}", 
-                    header_buffer.len(), body_buffer.len(), full_message.len());
+                eprintln!(
+                    "[papeli] EOB received. headers_len={}, body_len={}, full_len={}",
+                    header_buffer.len(),
+                    body_buffer.len(),
+                    full_message.len()
+                );
 
                 if let Some(new_email_bytes) = processor.process_email(&full_message) {
-                    eprintln!("[papeli] Email processed and modified! New len={}", new_email_bytes.len());
+                    eprintln!(
+                        "[papeli] Email processed and modified! New len={}",
+                        new_email_bytes.len()
+                    );
                     let (header_part, body_part) = split_headers_body(&new_email_bytes);
 
                     // 1. Atualiza cabeçalho Content-Type para o novo boundary gerado
@@ -434,7 +443,10 @@ pub fn run_milter_listener(listen: &str, processor: Arc<EmailProcessor>) -> std:
     } else {
         return Err(std::io::Error::new(
             std::io::ErrorKind::InvalidInput,
-            format!("Formato de escuta inválido: {}. Use 'unix:/caminho' ou 'inet:ip:porta'", listen),
+            format!(
+                "Formato de escuta inválido: {}. Use 'unix:/caminho' ou 'inet:ip:porta'",
+                listen
+            ),
         ));
     }
 

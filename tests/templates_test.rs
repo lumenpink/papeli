@@ -1,7 +1,7 @@
 use minijinja::context;
 use papeli::templates::{
-    build_long_signature_html, build_long_signature_text, TemplateEngine, DEFAULT_MJML_TEMPLATE,
-    DEFAULT_TEXT_TEMPLATE,
+    DEFAULT_MJML_TEMPLATE, DEFAULT_TEXT_TEMPLATE, TemplateEngine, build_long_signature_html,
+    build_long_signature_text,
 };
 
 #[test]
@@ -27,7 +27,10 @@ fn test_template_engine_renders_default_html_stationery() {
         .render_html(DEFAULT_MJML_TEMPLATE, &ctx)
         .expect("Falha ao renderizar template MJML");
 
-    assert!(html.contains("<!doctype html>"), "Deve ser um documento HTML completo");
+    assert!(
+        html.contains("<!doctype html>"),
+        "Deve ser um documento HTML completo"
+    );
     assert!(html.contains("Prezado cliente, segue a proposta solicitada."));
     assert!(html.contains("https://acme.com/logo.png"));
     assert!(html.contains("Carlos Silva"));
@@ -184,7 +187,11 @@ fn test_all_10_builtin_themes_render_rich_email() {
         signature_html => sig_html,
     };
 
-    assert_eq!(ALL_BUILTIN_THEMES.len(), 10, "Devem existir exatamente 10 temas embutidos");
+    assert_eq!(
+        ALL_BUILTIN_THEMES.len(),
+        10,
+        "Devem existir exatamente 10 temas embutidos"
+    );
 
     for &theme_name in ALL_BUILTIN_THEMES {
         let mjml = engine.resolve_mjml_template(theme_name, None);
@@ -192,21 +199,50 @@ fn test_all_10_builtin_themes_render_rich_email() {
             .render_html(&mjml, &ctx)
             .unwrap_or_else(|e| panic!("Falha ao renderizar tema {}: {:?}", theme_name, e));
 
-        assert!(html.contains("<!doctype html>"), "Tema {} deve gerar HTML válido", theme_name);
-        assert!(html.contains("Lumen Pink"), "Tema {} deve conter Lumen Pink no cabeçalho", theme_name);
-        assert!(html.contains("Planejamento Estratégico Q4"), "Tema {} deve conter título", theme_name);
-        assert!(html.contains("Taxa de Abertura"), "Tema {} deve conter conteúdo da tabela", theme_name);
-        assert!(html.contains("min-height: 848px") || html.contains("min-height:848px"), "Tema {} deve ter proporção de papel 848px", theme_name);
-        assert!(!html.contains("<mj-raw>"), "Tema {} NUNCA deve vazar tag <mj-raw> no HTML final", theme_name);
+        assert!(
+            html.contains("<!doctype html>"),
+            "Tema {} deve gerar HTML válido",
+            theme_name
+        );
+        assert!(
+            html.contains("Lumen Pink"),
+            "Tema {} deve conter Lumen Pink no cabeçalho",
+            theme_name
+        );
+        assert!(
+            html.contains("Planejamento Estratégico Q4"),
+            "Tema {} deve conter título",
+            theme_name
+        );
+        assert!(
+            html.contains("Taxa de Abertura"),
+            "Tema {} deve conter conteúdo da tabela",
+            theme_name
+        );
+        assert!(
+            html.contains("min-height: 848px") || html.contains("min-height:848px"),
+            "Tema {} deve ter proporção de papel 848px",
+            theme_name
+        );
+        assert!(
+            !html.contains("<mj-raw>"),
+            "Tema {} NUNCA deve vazar tag <mj-raw> no HTML final",
+            theme_name
+        );
 
         let attachments = papeli::templates::build_theme_inline_attachments(theme_name);
-        assert_eq!(attachments.len(), 0, "Tema {} não deve injetar attachments para manter compatibilidade máxima", theme_name);
+        assert_eq!(
+            attachments.len(),
+            0,
+            "Tema {} não deve injetar attachments para manter compatibilidade máxima",
+            theme_name
+        );
     }
 }
 
 #[test]
 fn test_template_selector_round_robin() {
-    use papeli::templates::{TemplateSelector, ALL_BUILTIN_THEMES};
+    use papeli::templates::{ALL_BUILTIN_THEMES, TemplateSelector};
 
     let selector = TemplateSelector::new();
     let mut selected = Vec::new();
@@ -219,6 +255,10 @@ fn test_template_selector_round_robin() {
     assert_eq!(selected.len(), 10);
     // Deve cobrir os 10 temas em sequência
     for &expected in ALL_BUILTIN_THEMES {
-        assert!(selected.iter().any(|s| s == expected), "Round-robin deve selecionar {}", expected);
+        assert!(
+            selected.iter().any(|s| s == expected),
+            "Round-robin deve selecionar {}",
+            expected
+        );
     }
 }
