@@ -206,6 +206,16 @@ Ideal para usuários de terminais e clientes TUI como o `aerc`:
 
 ---
 
+## 🚀 Compilação & Build Otimizado
+
+```bash
+# Compilação de release com LTO fat e strip
+cargo build --release
+
+# Compilação estática universal (static-pie) contra musl libc
+cargo build --release --target x86_64-unknown-linux-musl
+```
+
 ## 🗺️ Roadmap de Implementação
 
 - [x] **#2 `infra(setup)`**: Setup inicial do workspace Rust, CI, hooks CCCP e documentação base.
