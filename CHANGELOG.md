@@ -13,6 +13,7 @@
   - (mime) parse and reconstruct MIME tree preserving attachments (closes #6)
 
 ### Bug Fixes
+  - (build) configurar profile.release com LTO e strip, e crt-static musl (closes #19)
   - (milter) ignore SMFIC_MACRO without reply, support SMFIR_CHGHEADER and separate body payload
   - (milter) parse SMFIC_HEADER with null delimiters and insert EOH CRLF
 
