@@ -8,6 +8,18 @@
 
 ---
 
+## 📦 Binários e Releases Soberanos
+
+O binário do daemon `papeli` para `linux-x86_64` é compilado automaticamente a cada push na branch principal e publicado sob a tag canônica `latest` na Gambi:
+
+```bash
+# Baixar o binário mais recente diretamente da Gambi:
+curl -sSL -o /usr/local/bin/papeli https://gambi.2lp.in/lumen/papeli/releases/download/latest/papeli
+chmod +x /usr/local/bin/papeli
+```
+
+---
+
 ## 🎯 Visão Geral e Propósito
 
 Nas empresas, manter a identidade visual e assinaturas padronizadas em e-mails sempre foi um pesadelo: cada funcionário usa um cliente diferente (Outlook, Apple Mail no iPhone, Thunderbird, webmail), configurando assinaturas desatualizadas, desalinhadas ou com imagens quebradas.
