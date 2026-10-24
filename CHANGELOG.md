@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Features
+  - (ci) publicar release linux-x86_64 com tag latest na gambi (closes #20)
   - (meta) gerar card oficial de opengraph e banner social (closes #16)
   - (site) add documentation site, forgejo ci and cloudflare pages deploy
   - (milter) dual unix/tcp listener and smtp event loop (closes #11)
