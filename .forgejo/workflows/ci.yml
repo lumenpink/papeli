@@ -18,7 +18,7 @@ jobs:
     name: "Test & Build (Rust)"
     runs-on: ubuntu-latest
     container:
-      image: codeberg.org/lumenpink/gost-ci-rust:latest
+      image: gambi.2lp.in/lumen/gost-ci-rust:latest
 
     steps:
       - name: "Checkout"
@@ -53,7 +53,7 @@ jobs:
     name: "Deploy Documentation Site (papeli.2lp.in)"
     runs-on: ubuntu-latest
     container:
-      image: codeberg.org/lumenpink/gost-ci-deploy:latest
+      image: gambi.2lp.in/lumen/gost-ci-cross:latest
     needs: [test]
     if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && github.event_name == 'push'
     env:
@@ -82,40 +82,8 @@ jobs:
             echo "::warning::Cloudflare credentials (CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID) not configured. Skipping Cloudflare deployment."
           else
             echo "Publishing static documentation site to papeli.2lp.in via Cloudflare Workers..."
-            wrangler deploy || echo "::warning::Cloudflare deployment exited with status $?. Continuing with Codeberg Pages fallback."
+            npx wrangler deploy
           fi
-
-      - name: "Deploy to Codeberg Pages (Fallback Redundancy)"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.name "actions-user"
-          git config user.email "actions@codeberg.org"
-
-          WORKTREE_DIR=$(mktemp -d)
-          if git ls-remote --exit-code --heads origin pages > /dev/null 2>&1; then
-            git fetch origin pages:pages
-            git worktree add "$WORKTREE_DIR" pages
-          else
-            git worktree add --orphan -b pages "$WORKTREE_DIR"
-          fi
-
-          rm -rf "${WORKTREE_DIR:?}"/*
-          cp -r site/* "$WORKTREE_DIR/"
-
-          cd "$WORKTREE_DIR"
-          # Garantir que não haja CNAME no branch pages
-          rm -f CNAME
-          git add -A
-          if git diff --staged --quiet; then
-            echo "Sem mudanças no site para publicar no Codeberg Pages."
-          else
-            git commit -m "docs(site): deploy documentation to Codeberg Pages [skip ci]"
-            git push origin pages
-            echo "✅ Site publicado no Codeberg Pages com sucesso."
-          fi
-          cd - > /dev/null
-          git worktree remove "$WORKTREE_DIR" --force || true
 
   release:
     name: "Release Linux x86_64 Binary"
@@ -123,7 +91,7 @@ jobs:
     needs: [test]
     if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && github.event_name == 'push'
     container:
-      image: codeberg.org/lumenpink/gost-ci-rust:latest
+      image: gambi.2lp.in/lumen/gost-ci-rust:latest
     steps:
       - uses: actions/checkout@v4
       - name: "Build Release Binary"
