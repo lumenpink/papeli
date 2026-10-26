@@ -155,7 +155,7 @@ pub fn plain_text_to_html(text: &str, theme_name: &str) -> String {
             let starts_with_emoji = title_text
                 .chars()
                 .next()
-                .map_or(false, |c| !c.is_alphanumeric() && !c.is_ascii());
+                .is_some_and(|c| !c.is_alphanumeric() && !c.is_ascii());
             if !starts_with_emoji && !title_text.is_empty() {
                 let hashes = &line_trimmed[..heading_level];
                 processed_lines.push(format!("{} {} {}", hashes, palette.emoji, title_text));
@@ -358,26 +358,26 @@ fn remove_device_footers_html(html: &str) -> String {
             let after = &result[pos + footer.len()..];
 
             let mut removed = false;
-            if let Some(open_start) = before.rfind('<') {
-                if let Some(open_rel_end) = before[open_start..].find('>') {
-                    let open_end = open_start + open_rel_end + 1;
-                    let tag_open = &before[open_start..open_end];
-                    let tag_name = tag_open
-                        .trim_start_matches('<')
-                        .split_whitespace()
-                        .next()
-                        .unwrap_or("")
-                        .trim_end_matches('>');
+            if let Some(open_start) = before.rfind('<')
+                && let Some(open_rel_end) = before[open_start..].find('>')
+            {
+                let open_end = open_start + open_rel_end + 1;
+                let tag_open = &before[open_start..open_end];
+                let tag_name = tag_open
+                    .trim_start_matches('<')
+                    .split_whitespace()
+                    .next()
+                    .unwrap_or("")
+                    .trim_end_matches('>');
 
-                    let close_tag = format!("</{}>", tag_name);
-                    if let Some(close_rel) = after.find(&close_tag) {
-                        // Verifica se não há tags intermediárias
-                        let between = &after[..close_rel];
-                        if !between.contains('<') {
-                            let close_end = pos + footer.len() + close_rel + close_tag.len();
-                            result.replace_range(open_start..close_end, "");
-                            removed = true;
-                        }
+                let close_tag = format!("</{}>", tag_name);
+                if let Some(close_rel) = after.find(&close_tag) {
+                    // Verifica se não há tags intermediárias
+                    let between = &after[..close_rel];
+                    if !between.contains('<') {
+                        let close_end = pos + footer.len() + close_rel + close_tag.len();
+                        result.replace_range(open_start..close_end, "");
+                        removed = true;
                     }
                 }
             }

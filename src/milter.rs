@@ -197,7 +197,6 @@ impl EmailProcessor {
             .ok()?;
 
         // 5. Adicionar assets inline do tema (cantoneiras pré-rotacionadas e gradiente vertical)
-        let mut email = email;
         for att in crate::templates::build_theme_inline_attachments(&chosen_theme) {
             email.attachments.push(att);
         }
@@ -275,9 +274,8 @@ pub fn handle_milter_stream<S: Read + Write>(mut stream: S, processor: &EmailPro
             }
             SMFIC_BODYEOB => {
                 // Fim da mensagem: processar e substituir corpo se necessário
-                let full_message = if header_buffer.is_empty() {
-                    body_buffer.clone()
-                } else if body_buffer.starts_with(b"From:")
+                let full_message = if header_buffer.is_empty()
+                    || body_buffer.starts_with(b"From:")
                     || body_buffer.starts_with(b"From: ")
                     || body_buffer.starts_with(b"Received:")
                     || body_buffer.starts_with(b"Return-Path:")
@@ -370,11 +368,11 @@ pub fn extract_header_value(headers: &[u8], target_name: &str) -> Option<String>
                 val.push_str(line.trim());
             }
         } else {
-            if let Some((name, val)) = current_header.take() {
-                if name == target {
-                    result = Some(val);
-                    break;
-                }
+            if let Some((name, val)) = current_header.take()
+                && name == target
+            {
+                result = Some(val);
+                break;
             }
             if let Some(colon_pos) = line.find(':') {
                 let name = line[..colon_pos].trim().to_lowercase();
@@ -383,12 +381,11 @@ pub fn extract_header_value(headers: &[u8], target_name: &str) -> Option<String>
             }
         }
     }
-    if result.is_none() {
-        if let Some((name, val)) = current_header {
-            if name == target {
-                result = Some(val);
-            }
-        }
+    if result.is_none()
+        && let Some((name, val)) = current_header
+        && name == target
+    {
+        result = Some(val);
     }
     result
 }
@@ -422,23 +419,19 @@ pub fn run_milter_listener(listen: &str, processor: Arc<EmailProcessor>) -> std:
             let _ = std::fs::remove_file(path);
         }
         let listener = UnixListener::bind(path)?;
-        for stream in listener.incoming() {
-            if let Ok(s) = stream {
-                let proc = Arc::clone(&processor);
-                std::thread::spawn(move || {
-                    handle_milter_stream(s, &proc);
-                });
-            }
+        for s in listener.incoming().flatten() {
+            let proc = Arc::clone(&processor);
+            std::thread::spawn(move || {
+                handle_milter_stream(s, &proc);
+            });
         }
     } else if let Some(addr) = listen.strip_prefix("inet:") {
         let listener = TcpListener::bind(addr)?;
-        for stream in listener.incoming() {
-            if let Ok(s) = stream {
-                let proc = Arc::clone(&processor);
-                std::thread::spawn(move || {
-                    handle_milter_stream(s, &proc);
-                });
-            }
+        for s in listener.incoming().flatten() {
+            let proc = Arc::clone(&processor);
+            std::thread::spawn(move || {
+                handle_milter_stream(s, &proc);
+            });
         }
     } else {
         return Err(std::io::Error::new(

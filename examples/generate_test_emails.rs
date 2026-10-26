@@ -255,11 +255,9 @@ fn main() {
             do_send = true;
         } else if args[i] == "--markdown" || args[i] == "--aerc" {
             use_markdown = true;
-        } else if args[i] == "--theme" {
-            if i + 1 < args.len() {
-                target_theme = Some(args[i + 1].clone());
-                i += 1;
-            }
+        } else if args[i] == "--theme" && i + 1 < args.len() {
+            target_theme = Some(args[i + 1].clone());
+            i += 1;
         }
         i += 1;
     }

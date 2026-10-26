@@ -230,21 +230,21 @@ pub fn build_theme_inline_attachments(_theme_name: &str) -> Vec<EmailAttachment>
 pub fn extract_theme_tag(subject: &str) -> (String, Option<String>) {
     let lower = subject.to_lowercase();
     for prefix in &["[tema:", "[theme:"] {
-        if let Some(start) = lower.find(prefix) {
-            if let Some(rel_end) = lower[start..].find(']') {
-                let end = start + rel_end + 1;
-                let tag_content = &subject[start + prefix.len()..start + rel_end];
-                let theme = canonical_theme_name(tag_content.trim());
-                let mut clean = subject.to_string();
-                clean.replace_range(start..end, "");
-                let clean = clean.split_whitespace().collect::<Vec<_>>().join(" ");
-                let chosen = if theme != "default" {
-                    theme.to_string()
-                } else {
-                    tag_content.trim().to_string()
-                };
-                return (clean, Some(chosen));
-            }
+        if let Some(start) = lower.find(prefix)
+            && let Some(rel_end) = lower[start..].find(']')
+        {
+            let end = start + rel_end + 1;
+            let tag_content = &subject[start + prefix.len()..start + rel_end];
+            let theme = canonical_theme_name(tag_content.trim());
+            let mut clean = subject.to_string();
+            clean.replace_range(start..end, "");
+            let clean = clean.split_whitespace().collect::<Vec<_>>().join(" ");
+            let chosen = if theme != "default" {
+                theme.to_string()
+            } else {
+                tag_content.trim().to_string()
+            };
+            return (clean, Some(chosen));
         }
     }
 

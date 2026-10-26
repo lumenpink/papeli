@@ -126,12 +126,11 @@ impl Config {
                 "round-robin".to_string()
             }
         });
-        if self.default.template_strategy.as_deref() == Some("random")
-            || self.default.template_strategy.as_deref() == Some("round-robin")
+        if (self.default.template_strategy.as_deref() == Some("random")
+            || self.default.template_strategy.as_deref() == Some("round-robin"))
+            && self.default.template_html.is_none()
         {
-            if self.default.template_html.is_none() {
-                template_html = None;
-            }
+            template_html = None;
         }
         let mut disclaimer = self.default.disclaimer.clone();
         let mut sender_name = self.default.sender_name.clone();

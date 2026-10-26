@@ -123,10 +123,9 @@ impl ParsedEmail {
                     | "in-reply-to"
                     | "references"
                     | "date"
-            ) {
-                if let Some(val) = header.value().as_text() {
-                    custom_headers.push((name.to_string(), val.to_string()));
-                }
+            ) && let Some(val) = header.value().as_text()
+            {
+                custom_headers.push((name.to_string(), val.to_string()));
             }
         }
 
