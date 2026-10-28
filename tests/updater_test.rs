@@ -129,6 +129,55 @@ fn test_banca_distribution_endpoints() {
         download_url,
         "https://banca.2lp.in/downloads/papeli/papeli-0.1.0-linux-x86_64"
     );
+
+    let default_stable = get_download_url("stable", None);
+    assert_eq!(
+        default_stable,
+        "https://banca.2lp.in/downloads/papeli/stable-latest"
+    );
+
+    let default_nightly = get_download_url("nightly", None);
+    assert_eq!(
+        default_nightly,
+        "https://banca.2lp.in/downloads/papeli/nightly-latest"
+    );
+}
+
+#[test]
+fn test_mutation_fortification_config_and_pin_edge_cases() {
+    let tmp = tempdir().unwrap();
+    let cfg_path = tmp.path().join("config.toml");
+
+    let mut cfg = UpdateConfig {
+        channel: "nightly".to_string(),
+        auto_check: false,
+        auto_update: true,
+        pinned: false,
+        pin: "0.1.0".to_string(),
+        check_interval_hours: 24,
+    };
+
+    save_update_config(&cfg, Some(&cfg_path)).unwrap();
+    let loaded = papeli::update::load_update_config(Some(&cfg_path));
+    assert_eq!(loaded.channel, "nightly");
+    assert!(!loaded.auto_check);
+    assert!(loaded.auto_update);
+    assert!(!loaded.pinned);
+    assert_eq!(loaded.pin, "0.1.0");
+
+    // Pin vazio e unpinned -> não está fixado
+    cfg.pin = "".to_string();
+    assert!(!is_version_pinned(&cfg, "0.1.0"));
+
+    // Pin com mesma versão exata -> considerado fixado
+    cfg.pin = "0.1.0".to_string();
+    assert!(is_version_pinned(&cfg, "0.1.0"));
+
+    // Semver edge cases
+    assert!(!semver_is_newer("invalid", "invalid"));
+    assert!(semver_is_newer("1.0.0", "invalid"));
+    assert!(!semver_is_newer("0.1.0", "1.0.0"));
+    assert!(semver_is_newer("1.0.1", "1.0.0"));
 }
 
 #[test]
