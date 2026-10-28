@@ -74,6 +74,58 @@ fn test_email_processor_wraps_managed_sender() {
 }
 
 #[test]
+fn test_email_processor_injects_and_bypasses_wrapped_by_header() {
+    let toml = r#"
+    [server]
+    node_id = "node-alpha"
+    recognized_nodes = ["node-alpha", "node-beta"]
+
+    [default]
+    company_name = "Papéli Test"
+    template_html = "default"
+
+    [domains."acme.com"]
+    company_name = "ACME Corporation"
+    "#;
+    let cfg = Arc::new(RwLock::new(Config::from_toml(toml).unwrap()));
+    let processor = EmailProcessor::new(cfg);
+
+    let raw = load_fixture("gmail_web_thread.eml");
+    let wrapped = processor
+        .process_email(&raw)
+        .expect("Deve envelopar mensagem de domínio gerenciado");
+
+    let parsed =
+        papeli::mime::ParsedEmail::parse(&wrapped).expect("Deve parsear e-mail envelopado");
+    let wrapped_by_header = parsed
+        .custom_headers
+        .iter()
+        .find(|(k, _)| k.eq_ignore_ascii_case("x-papeli-wrapped-by"))
+        .map(|(_, v)| v.trim().to_string());
+
+    assert_eq!(
+        wrapped_by_header.as_deref(),
+        Some("node-alpha"),
+        "Deve injetar cabeçalho X-Papeli-Wrapped-By com o node_id configurado"
+    );
+
+    // Agora, passar o e-mail já envelopado de volta para o processor: deve sofrer bypass (None)
+    let second_pass = processor.process_email(&wrapped);
+    assert!(
+        second_pass.is_none(),
+        "E-mail já envelopado com X-Papeli-Wrapped-By deve sofrer bypass para evitar loop/duplo encapsulamento"
+    );
+
+    // E-mail envelopado por outro nó reconhecido do cluster (node-beta) também deve sofrer bypass
+    let raw_from_beta = b"From: carlos@acme.com\r\nTo: dest@exemplo.org\r\nSubject: Teste\r\nX-Papeli-Wrapped-By: node-beta\r\n\r\nConteudo";
+    let beta_pass = processor.process_email(raw_from_beta);
+    assert!(
+        beta_pass.is_none(),
+        "E-mail com X-Papeli-Wrapped-By de nó reconhecido do cluster deve sofrer bypass"
+    );
+}
+
+#[test]
 fn test_milter_stream_wire_protocol() {
     let cfg = sample_config();
     let processor = EmailProcessor::new(cfg);
