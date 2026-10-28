@@ -898,6 +898,7 @@ dependencies = [
  "pulldown-cmark",
  "scraper",
  "serde",
+ "serde_json",
  "sha2",
  "srmilter",
  "tempfile",

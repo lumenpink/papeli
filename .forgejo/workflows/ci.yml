@@ -85,25 +85,129 @@ jobs:
             npx wrangler deploy
           fi
 
-  release:
-    name: "Release Linux x86_64 Binary"
+  deploy-banca:
+    name: "Deploy Packages to Sovereign Banca & R2"
     runs-on: ubuntu-latest
+    container:
+      image: gambi.2lp.in/lumen/gost-ci-cross:latest
     needs: [test]
     if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && github.event_name == 'push'
-    container:
-      image: gambi.2lp.in/lumen/gost-ci-rust:latest
     steps:
-      - uses: actions/checkout@v4
-      - name: "Build Release Binary"
-        run: cargo build --release --bin papeli
-      - name: "Publish Sovereign Release (latest)"
-        uses: https://github.com/softprops/action-gh-release@v2
+      - name: "Checkout repository"
+        uses: https://github.com/actions/checkout@v4
         with:
-          tag_name: "latest"
-          name: "Papeli Latest (linux-x86_64)"
-          prerelease: false
-          files: target/release/papeli
-          body: |
-            Binário soberano oficial compilado para linux-x86_64.
-            Commit: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: "Determine Release Channel and Version"
+        id: meta
+        run: |
+          REF="${{ github.ref }}"
+          if [[ "$REF" == refs/tags/v* ]]; then
+            CHANNEL="stable"
+            VERSION="${REF#refs/tags/v}"
+          else
+            CHANNEL="nightly"
+            BASE_VER=$(head -n 1 VERSION 2>/dev/null | cut -d'+' -f1 | tr -d ' \r\n' || echo "0.1.0-dev")
+            GIT_SHA=$(git rev-parse --short HEAD)
+            DATE_STAMP=$(date +%Y%m%d)
+            VERSION="${BASE_VER}+${DATE_STAMP}.${GIT_SHA}"
+          fi
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "★ Canal: $CHANNEL | Versão: $VERSION"
+
+      - name: "Compile Papeli Static Binary"
+        run: |
+          export RUSTFLAGS="-C target-feature=+crt-static"
+          echo "★ Compilando x86_64-unknown-linux-musl (Linux AMD64)..."
+          cargo zigbuild --release --target x86_64-unknown-linux-musl --bin papeli || \
+            cargo build --release --target x86_64-unknown-linux-musl --bin papeli
+
+      - name: "Package Artifacts & Generate Checksums"
+        run: |
+          VERSION="${{ steps.meta.outputs.version }}"
+          mkdir -p dist/packages
+
+          BIN_PATH=""
+          if [ -f target/x86_64-unknown-linux-musl/release/papeli ]; then
+            BIN_PATH="target/x86_64-unknown-linux-musl/release/papeli"
+          elif [ -f target/release/papeli ]; then
+            BIN_PATH="target/release/papeli"
+          fi
+
+          if [ -n "$BIN_PATH" ]; then
+            cp "$BIN_PATH" "dist/packages/papeli-${VERSION}-linux-x86_64"
+            tar -czf "dist/packages/papeli-${VERSION}-linux-amd64.tar.gz" \
+              -C "$(dirname "$BIN_PATH")" papeli \
+              -C "$PWD" README.md LICENSE 2>/dev/null || \
+            tar -czf "dist/packages/papeli-${VERSION}-linux-amd64.tar.gz" \
+              -C "$(dirname "$BIN_PATH")" papeli
+          fi
+
+          cd dist/packages
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+          cd "$GITHUB_WORKSPACE"
+
+      - name: "Upload Artifacts to Cloudflare R2"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          CHANNEL="${{ steps.meta.outputs.channel }}"
+          VERSION="${{ steps.meta.outputs.version }}"
+
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "Aviso: CLOUDFLARE_API_TOKEN ausente. Pulando upload R2."
+            exit 0
+          fi
+
+          echo "★ Enviando pacotes para o Cloudflare R2 (twolp-bucket / bucket.2lp.in)..."
+          for PKG in dist/packages/*; do
+            [ -f "$PKG" ] || continue
+            PKG_NAME=$(basename "$PKG")
+            npx wrangler r2 object put "twolp-bucket/downloads/papeli/${CHANNEL}/${PKG_NAME}" \
+              --file="$PKG" --remote || true
+          done
+
+      - name: "Rotate Manifest & Commit to Banca"
+        env:
+          GIT_2LP_TOKEN: ${{ secrets.GIT_2LP_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          CHANNEL="${{ steps.meta.outputs.channel }}"
+          VERSION="${{ steps.meta.outputs.version }}"
+
+          echo "★ Clonando repositório soberano da Banca para rotação e retenção..."
+          git clone --depth 1 "https://lumen:${GIT_2LP_TOKEN}@gambi.2lp.in/lumen/banca.git" /tmp/banca
+
+          if [ -d "/tmp/banca/site/downloads/papeli" ] && [ -f "/tmp/banca/scripts/rotate-downloads.py" ]; then
+            cd /tmp/banca
+
+            PKG_FILE="papeli-${VERSION}-linux-amd64.tar.gz"
+            HASH=$(grep "$PKG_FILE" "$GITHUB_WORKSPACE/dist/packages/SHA256SUMS" | awk '{print $1}' || echo "")
+            DOWNLOAD_URL="https://banca.2lp.in/downloads/papeli/${CHANNEL}/${PKG_FILE}"
+
+            python3 scripts/rotate-downloads.py \
+              --manifest site/downloads/papeli/index.json \
+              --channel "${CHANNEL}" \
+              --arch "linux-amd64" \
+              --version-str "${VERSION}" \
+              --url "${DOWNLOAD_URL}" \
+              --sha256 "${HASH}" \
+              --tarball "${PKG_FILE}" \
+              --app "papeli"
+
+            git config user.name "Papeli Release Bot"
+            git config user.email "bot@2lp.in"
+            git add site/downloads/papeli/index.json
+            if ! git diff --staged --quiet; then
+              git commit -m "chore(downloads): rotate papeli release to ${VERSION} (#18)"
+              git push origin main || echo "Aviso: Push do manifesto na Banca falhou."
+            else
+              echo "Manifesto já estava atualizado."
+            fi
+            cd "$GITHUB_WORKSPACE"
+          fi
 

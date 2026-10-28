@@ -1,11 +1,64 @@
 use papeli::config::{Config, ConfigManager};
 use papeli::milter::{EmailProcessor, run_milter_listener};
+use papeli::update::{
+    CURRENT_VERSION, cmd_check_update, cmd_config, cmd_update, run_startup_check,
+};
 use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
+
+    // Roteamento de subcomandos XDG/CLI
+    if args.len() > 1 {
+        match args[1].as_str() {
+            "check-update" => {
+                let mut channel = None;
+                let mut i = 2;
+                while i < args.len() {
+                    if args[i] == "--channel" && i + 1 < args.len() {
+                        channel = Some(args[i + 1].as_str());
+                        i += 1;
+                    }
+                    i += 1;
+                }
+                return cmd_check_update(channel);
+            }
+            "update" => {
+                let mut channel = None;
+                let mut pin = None;
+                let mut force = false;
+                let mut dry_run = false;
+                let mut i = 2;
+                while i < args.len() {
+                    if args[i] == "--channel" && i + 1 < args.len() {
+                        channel = Some(args[i + 1].as_str());
+                        i += 1;
+                    } else if args[i] == "--pin" && i + 1 < args.len() {
+                        pin = Some(args[i + 1].as_str());
+                        i += 1;
+                    } else if args[i] == "--force" || args[i] == "-f" {
+                        force = true;
+                    } else if args[i] == "--dry-run" {
+                        dry_run = true;
+                    }
+                    i += 1;
+                }
+                return cmd_update(channel, pin, force, dry_run);
+            }
+            "config" => {
+                let config_subargs = if args.len() > 2 {
+                    args[2..].to_vec()
+                } else {
+                    vec!["show".to_string()]
+                };
+                return cmd_config(&config_subargs);
+            }
+            _ => {}
+        }
+    }
+
     let mut config_path = PathBuf::from("papeli.toml");
 
     let mut i = 1;
@@ -16,6 +69,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         i += 1;
     }
+
+    // Verificação periódica de atualização no startup (alerta sutil em stderr)
+    run_startup_check(CURRENT_VERSION);
 
     println!("====================================================");
     println!(" ★ Papéli - Filtro Milter de Papel de Carta em Rust ★");
@@ -35,7 +91,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let listen = config.server.listen.clone();
-    let manager = ConfigManager::from_config(config, config_path.clone());
+    let manager = ConfigManager::from_config(config, config_path);
     let processor = Arc::new(EmailProcessor::new(manager.get_config()));
 
     println!("Servidor Milter iniciando na escuta: {}", listen);
