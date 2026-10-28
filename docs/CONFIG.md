@@ -32,6 +32,10 @@ Se o remetente for de um domínio não gerenciado (ex: `@gmail.com`), `is_manage
 listen = "unix:/run/papeli/papeli.sock"
 # listen = "inet:127.0.0.1:8899"
 templates_dir = "/etc/papeli/templates"
+# Identificador do nó para rastreabilidade (X-Papeli-Wrapped-By)
+node_id = "postfix-node-01"
+# Lista opcional de nós confiáveis do cluster para prevenção de duplo encapsulamento
+recognized_nodes = ["postfix-node-01", "postfix-node-02"]
 
 [default]
 company_name = "Organização Geral"
