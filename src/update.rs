@@ -434,9 +434,7 @@ pub fn cmd_check_update(channel_override: Option<&str>) -> Result<(), Box<dyn st
         .output();
 
     let remote_ver = match output {
-        Ok(out) if out.status.success() => {
-            String::from_utf8_lossy(&out.stdout).trim().to_string()
-        }
+        Ok(out) if out.status.success() => String::from_utf8_lossy(&out.stdout).trim().to_string(),
         _ => String::new(),
     };
 
@@ -526,8 +524,7 @@ pub fn cmd_update(
         return Ok(());
     }
 
-    let temp_dl_path =
-        std::env::temp_dir().join(format!("{}-dl-{}", APP_NAME, std::process::id()));
+    let temp_dl_path = std::env::temp_dir().join(format!("{}-dl-{}", APP_NAME, std::process::id()));
 
     let status = Command::new("curl")
         .args(["-sSL", "-o", temp_dl_path.to_str().unwrap(), &download_url])
@@ -599,7 +596,10 @@ pub fn cmd_config(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
                 .ok_or("Uso: papeli config set-auto-check <true|false>")?;
             cfg.auto_check = val.trim().parse::<bool>()?;
             save_update_config(&cfg, None)?;
-            println!("✔ Verificação automática configurada para: {}", cfg.auto_check);
+            println!(
+                "✔ Verificação automática configurada para: {}",
+                cfg.auto_check
+            );
         }
         "set-auto-update" => {
             let val = args
@@ -614,7 +614,9 @@ pub fn cmd_config(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
         }
         other => {
             eprintln!("Subcomando de configuração desconhecido: '{}'", other);
-            eprintln!("Opções válidas: show, pin, unpin, set-channel, set-auto-check, set-auto-update");
+            eprintln!(
+                "Opções válidas: show, pin, unpin, set-channel, set-auto-check, set-auto-update"
+            );
             return Err("Subcomando de config inválido".into());
         }
     }
