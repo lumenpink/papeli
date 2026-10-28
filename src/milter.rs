@@ -63,9 +63,12 @@ impl EmailProcessor {
             Err(_) => return None,
         };
 
-        let resolved = {
+        let (resolved, server_cfg) = {
             let cfg = self.config.read().ok()?;
-            cfg.resolve(email.sender_email.as_deref())
+            (
+                cfg.resolve(email.sender_email.as_deref()),
+                cfg.server.clone(),
+            )
         };
 
         // Bypass: Se o e-mail não pertence a um domínio ou remetente gerenciado, não altera
@@ -74,11 +77,13 @@ impl EmailProcessor {
         }
 
         // Bypass: Se o e-mail já foi processado anteriormente pelo Papéli, não reprocessa
-        if email
-            .custom_headers
-            .iter()
-            .any(|(k, _)| k.eq_ignore_ascii_case("x-papeli-processed"))
-        {
+        let already_processed = email.custom_headers.iter().any(|(k, v)| {
+            k.eq_ignore_ascii_case("x-papeli-processed")
+                || (k.eq_ignore_ascii_case("x-papeli-wrapped-by")
+                    && server_cfg.is_node_recognized(v.trim()))
+        });
+
+        if already_processed {
             return None;
         }
 
@@ -202,7 +207,9 @@ impl EmailProcessor {
         }
 
         // 6. Reconstruir a árvore MIME intacta
-        email.reconstruct(&final_text, &final_html).ok()
+        email
+            .reconstruct_with_node(&final_text, &final_html, Some(&server_cfg.node_id))
+            .ok()
     }
 }
 

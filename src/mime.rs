@@ -204,6 +204,15 @@ impl ParsedEmail {
     }
 
     pub fn reconstruct(&self, new_text: &str, new_html: &str) -> Result<Vec<u8>, MimeError> {
+        self.reconstruct_with_node(new_text, new_html, None)
+    }
+
+    pub fn reconstruct_with_node(
+        &self,
+        new_text: &str,
+        new_html: &str,
+        node_id: Option<&str>,
+    ) -> Result<Vec<u8>, MimeError> {
         let mut builder = MessageBuilder::new();
 
         match (&self.sender_name, &self.sender_email) {
@@ -243,11 +252,16 @@ impl ParsedEmail {
 
         // Custom headers (ex: X-Mailer, User-Agent, etc.)
         for (name, value) in &self.custom_headers {
-            if !name.eq_ignore_ascii_case("x-papeli-processed") {
+            if !name.eq_ignore_ascii_case("x-papeli-processed")
+                && !name.eq_ignore_ascii_case("x-papeli-wrapped-by")
+            {
                 builder = builder.header(name.as_str(), Raw::new(value.as_str()));
             }
         }
         builder = builder.header("X-Papeli-Processed", Raw::new("true"));
+        if let Some(node) = node_id {
+            builder = builder.header("X-Papeli-Wrapped-By", Raw::new(node));
+        }
 
         use mail_builder::mime::MimePart;
 

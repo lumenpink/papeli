@@ -27,6 +27,10 @@ pub struct ServerConfig {
     pub listen: String,
     #[serde(default = "default_templates_dir")]
     pub templates_dir: PathBuf,
+    #[serde(default = "default_node_id")]
+    pub node_id: String,
+    #[serde(default)]
+    pub recognized_nodes: Vec<String>,
 }
 
 fn default_listen() -> String {
@@ -37,11 +41,32 @@ fn default_templates_dir() -> PathBuf {
     PathBuf::from("/etc/papeli/templates")
 }
 
+fn default_node_id() -> String {
+    std::env::var("HOSTNAME")
+        .or_else(|_| std::env::var("HOST"))
+        .unwrap_or_else(|_| "papeli-node".to_string())
+}
+
+impl ServerConfig {
+    pub fn is_node_recognized(&self, node: &str) -> bool {
+        if self.recognized_nodes.is_empty() {
+            true
+        } else {
+            self.recognized_nodes
+                .iter()
+                .any(|n| n.eq_ignore_ascii_case(node))
+                || self.node_id.eq_ignore_ascii_case(node)
+        }
+    }
+}
+
 impl Default for ServerConfig {
     fn default() -> Self {
         Self {
             listen: default_listen(),
             templates_dir: default_templates_dir(),
+            node_id: default_node_id(),
+            recognized_nodes: Vec::new(),
         }
     }
 }
