@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Features
+  - (updater) suporte a downloads soberanos na banca e xdg updater (closes #18)
   - (ci) publicar release linux-x86_64 com tag latest na gambi (closes #20)
   - (meta) gerar card oficial de opengraph e banner social (closes #16)
   - (site) add documentation site, forgejo ci and cloudflare pages deploy
