@@ -93,3 +93,26 @@ fn test_config_manager_live_reload() {
         assert_eq!(res.company_name, "ACME Global Holdings");
     }
 }
+
+#[test]
+fn test_server_config_node_recognition() {
+    let toml_empty = r#"
+    [server]
+    node_id = "master-node"
+    "#;
+    let cfg_empty = Config::from_toml(toml_empty).unwrap();
+    // Quando lista de nós reconhecidos estiver vazia, qualquer nó é aceito por padrão
+    assert!(cfg_empty.server.is_node_recognized("any-node"));
+    assert!(cfg_empty.server.is_node_recognized("master-node"));
+
+    let toml_cluster = r#"
+    [server]
+    node_id = "node-1"
+    recognized_nodes = ["node-1", "node-2", "node-3"]
+    "#;
+    let cfg_cluster = Config::from_toml(toml_cluster).unwrap();
+    assert!(cfg_cluster.server.is_node_recognized("node-1"));
+    assert!(cfg_cluster.server.is_node_recognized("NODE-2")); // case insensitive
+    assert!(cfg_cluster.server.is_node_recognized("node-3"));
+    assert!(!cfg_cluster.server.is_node_recognized("rogue-node"));
+}
