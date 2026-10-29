@@ -37,11 +37,11 @@ LINE_NUM=0
 while IFS= read -r line || [ -n "$line" ]; do
     LINE_NUM=$((LINE_NUM + 1))
     # Ignorar linhas vazias e comentários com #
-    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "${line//[[:space:]]/}" || "$line" =~ ^[[:space:]]*# ]] && continue
 
     if [[ "$line" =~ ^/ ]]; then
         CURRENT_ROUTE="$line"
-    elif [[ "$line" =~ ^[[:space:]]+([A-Za-z0-9-]+):[[:space:]]+ ]]; then
+    elif [[ "$line" =~ ^[[:space:]]+([A-Za-z0-9-]+):[[:space:]]* ]]; then
         # Par válido de cabeçalho
         continue
     else
