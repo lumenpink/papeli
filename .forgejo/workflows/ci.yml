@@ -9,6 +9,8 @@ on:
 
 env:
   RUST_BACKTRACE: 1
+  no_proxy: "localhost,127.0.0.1,::1"
+  NO_PROXY: "localhost,127.0.0.1,::1"
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
@@ -18,21 +20,11 @@ jobs:
     name: "Test & Build (Rust)"
     runs-on: ubuntu-latest
     container:
-      image: gambi.2lp.in/lumen/gost-ci-rust:latest
+      image: gambi.2lp.in/lumen/gost-ci-cross:latest
 
     steps:
       - name: "Checkout"
         uses: https://github.com/actions/checkout@v4
-
-      - name: "Cache Cargo"
-        uses: https://github.com/actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: cargo-${{ hashFiles('Cargo.lock') }}
-          restore-keys: cargo-
 
       - name: "cargo test — Unit & Integration Tests"
         run: cargo test --all-features -- --test-threads=4
