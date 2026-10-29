@@ -72,18 +72,36 @@ else
     echo "OK: Mutante 1 (sem no_proxy) detectado e isolado."
 fi
 
-# Mutante 2: Reinsercao de actions/cache
-sed 's/cargo test/actions\/cache/' "$WORKFLOW_FILE" > "$TMP_WORKFLOW"
-if ! grep -q "actions/cache" "$TMP_WORKFLOW"; then
-    echo "FALHA: Mutante 2 (reintroducao actions/cache) nao detectado."
+# Mutante 2: Remocao de NO_PROXY
+sed 's/NO_PROXY: "localhost,127.0.0.1,::1"//' "$WORKFLOW_FILE" > "$TMP_WORKFLOW"
+if grep -q 'NO_PROXY: "localhost,127.0.0.1,::1"' "$TMP_WORKFLOW"; then
+    echo "FALHA: Mutante 2 (sem NO_PROXY) nao detectado."
     FAILED=1
 else
-    echo "OK: Mutante 2 (reintroducao actions/cache) detectado e isolado."
+    echo "OK: Mutante 2 (sem NO_PROXY) detectado e isolado."
+fi
+
+# Mutante 3: Reinsercao de actions/cache
+sed 's/cargo test/actions\/cache/' "$WORKFLOW_FILE" > "$TMP_WORKFLOW"
+if ! grep -q "actions/cache" "$TMP_WORKFLOW"; then
+    echo "FALHA: Mutante 3 (reintroducao actions/cache) nao detectado."
+    FAILED=1
+else
+    echo "OK: Mutante 3 (reintroducao actions/cache) detectado e isolado."
+fi
+
+# Mutante 4: Regressao da imagem para gost-ci-rust
+sed 's/gost-ci-cross:latest/gost-ci-rust:latest/' "$WORKFLOW_FILE" > "$TMP_WORKFLOW"
+if grep -A 10 "test:" "$TMP_WORKFLOW" | grep -q "gost-ci-cross:latest"; then
+    echo "FALHA: Mutante 4 (regressao de imagem) nao detectado."
+    FAILED=1
+else
+    echo "OK: Mutante 4 (regressao de imagem) detectado e isolado."
 fi
 
 if [ $FAILED -ne 0 ]; then
-    echo "==> [TEST] STATUS: RED (Assercoes falharam conforme esperado no TDD)"
+    echo "==> [TEST] STATUS: RED (Assercoes falharam)"
     exit 1
 fi
 
-echo "==> [TEST] STATUS: GREEN (Todas as assercoes e mutacoes passaram)"
+echo "==> [TEST] STATUS: GREEN (Todas as assercoes e 4 mutacoes passaram)"
