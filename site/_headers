@@ -1,7 +1,5 @@
-/*
- * Papéli — Cache & Security Headers
- * Cloudflare Workers / Pages deployment
- */
+# Papéli — Cache & Security Headers
+# Cloudflare Workers / Pages deployment
 
 # HTML pages — sem cache (sempre frescos)
 /*.html

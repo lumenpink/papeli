@@ -86,7 +86,7 @@ jobs:
           fi
 
   deploy-banca:
-    name: "Deploy Packages to Sovereign Banca & R2"
+    name: "Deploy Packages to Banca & R2"
     runs-on: ubuntu-latest
     container:
       image: gambi.2lp.in/lumen/gost-ci-cross:latest
@@ -172,14 +172,14 @@ jobs:
 
       - name: "Rotate Manifest & Commit to Banca"
         env:
-          GIT_2LP_TOKEN: ${{ secrets.GIT_2LP_TOKEN }}
+          GIT_2LP_TOKEN: ${{ secrets.GIT_2LP_TOKEN || secrets.GAMBI_2LP_IN_TOKEN }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           CHANNEL="${{ steps.meta.outputs.channel }}"
           VERSION="${{ steps.meta.outputs.version }}"
 
-          echo "★ Clonando repositório soberano da Banca para rotação e retenção..."
+          echo "★ Clonando repositório da Banca para rotação e retenção..."
           git clone --depth 1 "https://lumen:${GIT_2LP_TOKEN}@gambi.2lp.in/lumen/banca.git" /tmp/banca
 
           if [ -d "/tmp/banca/site/downloads/papeli" ] && [ -f "/tmp/banca/scripts/rotate-downloads.py" ]; then
