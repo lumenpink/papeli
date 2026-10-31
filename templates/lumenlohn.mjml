@@ -275,7 +275,7 @@
               Lumen Müller Lohn Freitas
             </mj-text>
             <mj-text css-class="header-sub" align="left" font-size="12px" font-weight="500" color="#475569" line-height="16px" padding="0px">
-              Bacharela em Direito • Especialista em Redes de Computadores • Consultoria Técnica B2B
+              Assistência Técnica Judicial &amp; Auditoria Pericial de TI
             </mj-text>
           </mj-column>
           <mj-column width="25%" vertical-align="middle">
@@ -320,7 +320,6 @@
             Atenciosamente,<br/><br/>
             <strong style="color: #0f172a; font-size: 14px;">Lumen Müller Lohn Freitas</strong><br/>
             Bacharela em Direito • Especialista em Redes de Computadores<br/>
-            Assistência Técnica Judicial &amp; Consultoria Pré-Processual<br/>
             <span style="font-family: 'Courier New', Courier, monospace; font-size: 12px; color: #475569;">E-mail: pericia@lumenlohn.com.br | Contato: (48) 99812-0812</span>
           </mj-text>
         </mj-column>
@@ -330,8 +329,8 @@
       <mj-section css-class="footer-card" padding="12px 24px" background-color="#f8fafc" border-top="1px solid #e2e8f0">
         <mj-column>
           <mj-text align="center" font-size="11px" line-height="16px" color="#64748b" padding="0px">
-            Lumen Müller Lohn Freitas — Perícia, Compliance e Mediação de TI<br/>
-            Atendimento direto a advogados, departamentos jurídicos e magistrados • Grande Florianópolis/SC e atuação remota nacional<br/>
+            Atendimento a advogados, departamentos jurídicos e magistrados<br/>
+            Grande Florianópolis/SC e atuação remota em todo o território nacional<br/>
             <span style="font-size: 10px; color: #94a3b8;">Comunicação restrita e confidencial resguardada pelo sigilo profissional.</span>
           </mj-text>
         </mj-column>
