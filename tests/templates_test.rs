@@ -262,3 +262,27 @@ fn test_template_selector_round_robin() {
         );
     }
 }
+
+#[test]
+fn test_lumenlohn_mjml_compilation() {
+    let engine = TemplateEngine::new();
+    let template_path = std::path::Path::new("templates/lumenlohn.mjml");
+    if template_path.exists() {
+        let content = std::fs::read_to_string(template_path).expect("Ler lumenlohn.mjml");
+        let ctx = minijinja::context! {
+            subject => "Notificação Técnica Pericial",
+            content_html => "<p>Manifestação técnica pericial referente aos quesitos apresentados.</p>",
+        };
+        let html = engine
+            .render_html(&content, &ctx)
+            .expect("Renderização do template lumenlohn.mjml via MRML deve ter sucesso");
+
+        assert!(html.contains("<!doctype html>"));
+        assert!(html.contains("Lumen Müller Lohn Freitas"));
+        assert!(html.contains("Bacharela em Direito"));
+        assert!(
+            html.contains("Manifestação técnica pericial referente aos quesitos apresentados.")
+        );
+        assert!(html.contains("lumenlohn.com.br"));
+    }
+}
